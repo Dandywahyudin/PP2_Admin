@@ -15,7 +15,7 @@ public class PickupRequest {
         this.points = points;
     }
 
-    // Getters and setters
+    // Getter dan Setter
     public String getRequestId() {
         return requestId;
     }

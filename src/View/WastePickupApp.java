@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class WastePickupApp{
+public class WastePickupApp {
 
     private JFrame frame;
     private JTable tableRequests;
@@ -26,21 +26,21 @@ public class WastePickupApp{
 
     private void initializeUI() {
         frame = new JFrame("Admin Dashboard - Waste Pickup Management");
-        frame.setSize(1000, 700);
+        frame.setSize(1200, 800);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
-        // Panel atas untuk filter dan tindakan
+        // Panel atas untuk tindakan CRUD
         JPanel topPanel = new JPanel(new FlowLayout());
+        JButton btnAddRequest = new JButton("Add New Request");
+        JButton btnEditRequest = new JButton("Edit Request");
+        JButton btnDeleteRequest = new JButton("Delete Request");
         JButton btnViewAllRequests = new JButton("View All Requests");
-        JButton btnViewCollected = new JButton("View Collected Requests");
-        JButton btnTrackRequest = new JButton("Track Request");
-        JButton btnViewHistory = new JButton("View History");
-        topPanel.add(btnViewAllRequests);
-        topPanel.add(btnViewCollected);
-        topPanel.add(btnTrackRequest);
-        topPanel.add(btnViewHistory);
 
+        topPanel.add(btnAddRequest);
+        topPanel.add(btnEditRequest);
+        topPanel.add(btnDeleteRequest);
+        topPanel.add(btnViewAllRequests);
         frame.add(topPanel, BorderLayout.NORTH);
 
         // Tabel untuk menampilkan data
@@ -59,65 +59,91 @@ public class WastePickupApp{
         frame.add(bottomPanel, BorderLayout.SOUTH);
 
         // Event handling
+        btnAddRequest.addActionListener(this::addNewRequest);
+        btnEditRequest.addActionListener(this::editRequest);
+        btnDeleteRequest.addActionListener(this::deleteRequest);
         btnViewAllRequests.addActionListener(this::viewAllRequests);
-        btnViewCollected.addActionListener(this::viewCollectedRequests);
-        btnTrackRequest.addActionListener(this::trackRequest);
-        btnViewHistory.addActionListener(this::viewHistory);
 
         frame.setVisible(true);
-
-        // Load initial data
         viewAllRequests(null);
     }
 
-    private void viewAllRequests(ActionEvent e) {
+    private void addNewRequest(ActionEvent e) {
+        String userId = JOptionPane.showInputDialog(frame, "Enter User ID:");
+        String courierId = JOptionPane.showInputDialog(frame, "Enter Courier ID (optional):");
+        String status = JOptionPane.showInputDialog(frame, "Enter Status (Pending/Completed):");
+        String pointsInput = JOptionPane.showInputDialog(frame, "Enter Points:");
+
         try {
-            List<PickupRequest> requests = controller.getAllRequests();
-            populateTable(requests);
+            int points = Integer.parseInt(pointsInput);
+            if (userId == null || userId.isEmpty() || status == null || status.isEmpty()) {
+                showError("User ID and Status are required!");
+                return;
+            }
+
+            PickupRequest newRequest = new PickupRequest(null, userId, courierId, status, points);
+            controller.addRequest(newRequest);
+            JOptionPane.showMessageDialog(frame, "New request added successfully!");
+            viewAllRequests(null);
+        } catch (NumberFormatException ex) {
+            showError("Points must be a valid number!");
         } catch (SQLException ex) {
             showError(ex.getMessage());
         }
     }
 
-    private void viewCollectedRequests(ActionEvent e) {
+    private void editRequest(ActionEvent e) {
+        int selectedRow = tableRequests.getSelectedRow();
+        if (selectedRow == -1) {
+            showError("Please select a request to edit.");
+            return;
+        }
+
+        String requestId = tableModel.getValueAt(selectedRow, 0).toString();
+        String newStatus = JOptionPane.showInputDialog(frame, "Enter New Status (Pending/Completed):");
+        String pointsInput = JOptionPane.showInputDialog(frame, "Enter New Points:");
+
         try {
-            List<PickupRequest> requests = controller.getAllRequests();
-            populateTable(requests.stream().filter(r -> "Completed".equals(r.getStatus())).collect(Collectors.toList()));
-            int totalCollected = (int) requests.stream().filter(r -> "Completed".equals(r.getStatus())).count();
-            lblTotalCollected.setText("Total Collected: " + totalCollected + " Requests");
-            int totalPoints = requests.stream().filter(r -> "Completed".equals(r.getStatus())).mapToInt(PickupRequest::getPoints).sum();
-            lblTotalPoints.setText("Total Points: " + totalPoints);
+            int newPoints = Integer.parseInt(pointsInput);
+            if (newStatus == null || newStatus.isEmpty()) {
+                showError("Status is required!");
+                return;
+            }
+
+            controller.updateRequest(requestId, newStatus, newPoints);
+            JOptionPane.showMessageDialog(frame, "Request updated successfully!");
+            viewAllRequests(null);
+        } catch (NumberFormatException ex) {
+            showError("Points must be a valid number!");
         } catch (SQLException ex) {
             showError(ex.getMessage());
         }
     }
 
-    private void trackRequest(ActionEvent e) {
-        String requestId = JOptionPane.showInputDialog(frame, "Enter Request ID to Track:");
-        if (requestId != null && !requestId.trim().isEmpty()) {
+    private void deleteRequest(ActionEvent e) {
+        int selectedRow = tableRequests.getSelectedRow();
+        if (selectedRow == -1) {
+            showError("Please select a request to delete.");
+            return;
+        }
+
+        String requestId = tableModel.getValueAt(selectedRow, 0).toString();
+        int confirm = JOptionPane.showConfirmDialog(frame, "Are you sure you want to delete this request?");
+        if (confirm == JOptionPane.YES_OPTION) {
             try {
-                List<PickupRequest> requests = controller.getAllRequests();
-                PickupRequest request = requests.stream().filter(r -> r.getRequestId().equals(requestId)).findFirst().orElse(null);
-                if (request != null) {
-                    JOptionPane.showMessageDialog(frame, "Request Details:\n" +
-                            "Request ID: " + request.getRequestId() + "\n" +
-                            "User ID: " + request.getUserId() + "\n" +
-                            "Courier ID: " + (request.getCourierId() != null ? request.getCourierId() : "Not Assigned") + "\n" +
-                            "Status: " + request.getStatus() + "\n" +
-                            "Points: " + request.getPoints());
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Request ID not found.");
-                }
+                controller.deleteRequest(requestId);
+                JOptionPane.showMessageDialog(frame, "Request deleted successfully!");
+                viewAllRequests(null);
             } catch (SQLException ex) {
                 showError(ex.getMessage());
             }
         }
     }
 
-    private void viewHistory(ActionEvent e) {
+    private void viewAllRequests(ActionEvent e) {
         try {
             List<PickupRequest> requests = controller.getAllRequests();
-            populateTable(requests); // For now, assuming all records as history
+            populateTable(requests);
         } catch (SQLException ex) {
             showError(ex.getMessage());
         }

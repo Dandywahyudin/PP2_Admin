@@ -8,59 +8,69 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PickupRequestController {
+
+    private final Connection connection;
+
+    public PickupRequestController() {
+        this.connection = DatabaseConnection.getConnection();
+    }
+
+    // CREATE: Tambah permintaan baru
     public void addRequest(PickupRequest request) throws SQLException {
-        String query = "INSERT INTO pickup_requests (request_id, user_id, courier_id, status, points) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, request.getRequestId());
-            stmt.setString(2, request.getUserId());
-            stmt.setString(3, request.getCourierId());
-            stmt.setString(4, request.getStatus());
-            stmt.setInt(5, request.getPoints());
-            stmt.executeUpdate();
+        String query = "INSERT INTO pickup_requests (request_id, user_id, courier_id, status, points) " +
+                "VALUES (UUID(), ?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, request.getUserId());
+            statement.setString(2, request.getCourierId());
+            statement.setString(3, request.getStatus());
+            statement.setInt(4, request.getPoints());
+            statement.executeUpdate();
         }
     }
 
-    public void updateRequest(PickupRequest request) throws SQLException {
-        String query = "UPDATE pickup_requests SET user_id = ?, courier_id = ?, status = ?, points = ? WHERE request_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, request.getUserId());
-            stmt.setString(2, request.getCourierId());
-            stmt.setString(3, request.getStatus());
-            stmt.setInt(4, request.getPoints());
-            stmt.setString(5, request.getRequestId());
-            stmt.executeUpdate();
-        }
-    }
-
-    public void deleteRequest(String requestId) throws SQLException {
-        String query = "DELETE FROM pickup_requests WHERE request_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, requestId);
-            stmt.executeUpdate();
-        }
-    }
-
+    // READ: Ambil semua data permintaan
     public List<PickupRequest> getAllRequests() throws SQLException {
-        String query = "SELECT * FROM pickup_requests";
         List<PickupRequest> requests = new ArrayList<>();
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-
-            while (rs.next()) {
+        String query = "SELECT * FROM pickup_requests";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+            while (resultSet.next()) {
                 PickupRequest request = new PickupRequest(
-                        rs.getString("request_id"),
-                        rs.getString("user_id"),
-                        rs.getString("courier_id"),
-                        rs.getString("status"),
-                        rs.getInt("points")
+                        resultSet.getString("request_id"),
+                        resultSet.getString("user_id"),
+                        resultSet.getString("courier_id"),
+                        resultSet.getString("status"),
+                        resultSet.getInt("points")
                 );
                 requests.add(request);
             }
         }
         return requests;
+    }
+
+    // UPDATE: Ubah data permintaan berdasarkan request_id
+    public void updateRequest(String requestId, String newStatus, int newPoints) throws SQLException {
+        String query = "UPDATE pickup_requests SET status = ?, points = ? WHERE request_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, newStatus);
+            statement.setInt(2, newPoints);
+            statement.setString(3, requestId);
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new SQLException("No request found with ID: " + requestId);
+            }
+        }
+    }
+
+    // DELETE: Hapus data permintaan berdasarkan request_id
+    public void deleteRequest(String requestId) throws SQLException {
+        String query = "DELETE FROM pickup_requests WHERE request_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, requestId);
+            int rowsDeleted = statement.executeUpdate();
+            if (rowsDeleted == 0) {
+                throw new SQLException("No request found with ID: " + requestId);
+            }
+        }
     }
 }
