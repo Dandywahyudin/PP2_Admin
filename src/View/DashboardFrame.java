@@ -71,6 +71,19 @@ public class DashboardFrame {
 
         frame.add(crudPanel, BorderLayout.SOUTH);
 
+        //tambah button print
+        JPanel reportPanel = new JPanel(new FlowLayout());
+        JButton btnPrintPreview = new JButton("Print Preview");
+        JButton btnPrint = new JButton("Print Report");
+        JButton btnExportPDF = new JButton("Export to PDF");
+
+        reportPanel.add(btnPrintPreview);
+        reportPanel.add(btnPrint);
+        reportPanel.add(btnExportPDF);
+
+        frame.add(reportPanel, BorderLayout.NORTH);
+
+
         // Tombol kembali ke menu utama
         JButton btnBack = new JButton("Back to Main Menu");
         btnBack.addActionListener(e -> {
@@ -83,6 +96,12 @@ public class DashboardFrame {
         btnCreate.addActionListener(e -> createRequest());
         btnUpdate.addActionListener(e -> updateRequest());
         btnDelete.addActionListener(e -> deleteRequest());
+
+        //Event Listener untuk Tombol print pdf
+        btnPrintPreview.addActionListener(e -> showPrintPreview());
+        btnPrint.addActionListener(e -> printReport());
+        btnExportPDF.addActionListener(e -> exportToPDF());
+
 
         frame.setVisible(true);
     }
@@ -235,4 +254,88 @@ public class DashboardFrame {
             }
         }
     }
+
+    //show print preview
+    private void showPrintPreview() {
+        try {
+            List<PickupRequest> requests = controller.getAllRequests();
+            StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
+
+            for (PickupRequest request : requests) {
+                reportContent.append("Request ID: ").append(request.getRequestId()).append("\n");
+                reportContent.append("User ID: ").append(request.getUserId()).append("\n");
+                reportContent.append("Courier ID: ").append(request.getCourierId()).append("\n");
+                reportContent.append("Status: ").append(request.getStatus()).append("\n");
+                reportContent.append("Points: ").append(request.getPoints()).append("\n");
+                reportContent.append("----------------------------\n");
+            }
+
+            JTextArea textArea = new JTextArea(reportContent.toString());
+            textArea.setEditable(false);
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new Dimension(500, 400));
+
+            JOptionPane.showMessageDialog(frame, scrollPane, "Print Preview", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(frame, "Failed to generate report: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    //print report
+    private void printReport() {
+        try {
+            List<PickupRequest> requests = controller.getAllRequests();
+            StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
+
+            for (PickupRequest request : requests) {
+                reportContent.append("Request ID: ").append(request.getRequestId()).append("\n");
+                reportContent.append("User ID: ").append(request.getUserId()).append("\n");
+                reportContent.append("Courier ID: ").append(request.getCourierId()).append("\n");
+                reportContent.append("Status: ").append(request.getStatus()).append("\n");
+                reportContent.append("Points: ").append(request.getPoints()).append("\n");
+                reportContent.append("----------------------------\n");
+            }
+
+            JTextArea textArea = new JTextArea(reportContent.toString());
+            textArea.print(); // Print dialog will open
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame, "Failed to print report: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    //export ke pdf langsung
+    private void exportToPDF() {
+        try {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Save as PDF");
+            int userSelection = fileChooser.showSaveDialog(frame);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                String filePath = fileChooser.getSelectedFile().getAbsolutePath() + ".pdf";
+
+                com.itextpdf.text.Document document = new com.itextpdf.text.Document();
+                com.itextpdf.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(filePath));
+
+                document.open();
+                document.add(new com.itextpdf.text.Paragraph("Pickup Requests Report\n\n"));
+
+                List<PickupRequest> requests = controller.getAllRequests();
+                for (PickupRequest request : requests) {
+                    document.add(new com.itextpdf.text.Paragraph("Request ID: " + request.getRequestId()));
+                    document.add(new com.itextpdf.text.Paragraph("User ID: " + request.getUserId()));
+                    document.add(new com.itextpdf.text.Paragraph("Courier ID: " + request.getCourierId()));
+                    document.add(new com.itextpdf.text.Paragraph("Status: " + request.getStatus()));
+                    document.add(new com.itextpdf.text.Paragraph("Points: " + request.getPoints()));
+                    document.add(new com.itextpdf.text.Paragraph("----------------------------"));
+                }
+
+                document.close();
+                JOptionPane.showMessageDialog(frame, "Report exported to PDF successfully!");
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame, "Failed to export report to PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
 }
