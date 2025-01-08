@@ -17,19 +17,15 @@ public class MainFrame {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
-        // Menu dropdown di pojok kiri atas
-        JMenuBar menuBar = new JMenuBar();
-        JMenu menu = new JMenu("Menu");
-        JMenuItem menuDashboard = new JMenuItem("Dashboard");
-        JMenuItem menuRequest = new JMenuItem("Request");
-        JMenuItem menuExit = new JMenuItem("Exit");
-
-        menu.add(menuDashboard);
-        menu.add(menuRequest);
-        menu.addSeparator();
-        menu.add(menuExit);
-        menuBar.add(menu);
-        frame.setJMenuBar(menuBar);
+        // Create and set the menu bar using AppMenuBar
+        MenuBar appMenuBar = new MenuBar();
+        frame.setJMenuBar(appMenuBar.createMenuBar(
+                this::openDashboard,
+                this::openRequest,
+                this::openManageUsers,
+                this::openCourier,
+                e -> System.exit(0)
+        ));
 
         // Panel utama untuk tampilan awal
         JPanel mainPanel = new JPanel();
@@ -63,11 +59,6 @@ public class MainFrame {
 
         frame.add(mainPanel, BorderLayout.CENTER);
 
-        // Event handling
-        menuDashboard.addActionListener(this::openDashboard);
-        menuRequest.addActionListener(this::openRequest);
-        menuExit.addActionListener(e -> System.exit(0));
-
         frame.setVisible(true);
     }
 
@@ -77,6 +68,14 @@ public class MainFrame {
 
     private void openRequest(ActionEvent e) {
         new RequestFrame(frame); // Navigasi ke halaman Request
+    }
+
+    private void openManageUsers(ActionEvent e) {
+        new UserFrame(); // Navigasi ke halaman User Management
+    }
+
+    private void openCourier(ActionEvent e) {
+        new CourierFrame(); // Navigasi ke halaman Pendaftaran Kurir
     }
 
     public static void main(String[] args) {
