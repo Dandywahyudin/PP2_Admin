@@ -6,13 +6,15 @@ public class PickupRequest {
     private String courierId;
     private String status;
     private int points;
+    private String wasteType;
 
-    public PickupRequest(String requestId, String userId, String courierId, String status, int points) {
+    public PickupRequest(String requestId, String userId, String courierId, String status, int points, String wasteType) {
         this.requestId = requestId;
         this.userId = userId;
         this.courierId = courierId;
         this.status = status;
         this.points = points;
+        this.wasteType = wasteType;
     }
 
     // Getter dan Setter
@@ -54,5 +56,13 @@ public class PickupRequest {
 
     public void setPoints(int points) {
         this.points = points;
+    }
+
+    public String getWasteType() {
+        return wasteType;
+    }
+
+    public void setWasteType(String wasteType) {
+        this.wasteType = wasteType;
     }
 }

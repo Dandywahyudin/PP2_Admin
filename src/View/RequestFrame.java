@@ -19,7 +19,7 @@ public class RequestFrame {
         this.parentFrame = parentFrame;
         this.controller = new PickupRequestController();
         initializeUI();
-        loadData(null); // Memuat semua data di awal
+        loadData(null);
     }
 
     private void initializeUI() {
@@ -32,13 +32,21 @@ public class RequestFrame {
         lblRequest.setFont(new Font("Arial", Font.BOLD, 24));
         frame.add(lblRequest, BorderLayout.NORTH);
 
-        // Tabel untuk menampilkan data permintaan
-        tableModel = new DefaultTableModel(new String[]{"ID", "User ID", "Courier ID", "Status", "Points"}, 0);
+        tableModel = new DefaultTableModel(
+            new String[]{
+                "ID Permintaan", 
+                "ID Pengguna", 
+                "ID Kurir", 
+                "Status", 
+                "Poin", 
+                "Jenis Sampah"
+            }, 
+            0
+        );
         JTable table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
         frame.add(scrollPane, BorderLayout.CENTER);
 
-        // Panel untuk tombol filter dan tracking
         JPanel buttonPanel = new JPanel(new GridLayout(2, 3, 10, 10));
         JButton btnViewAll = new JButton("View All Requests");
         JButton btnViewCompleted = new JButton("View Completed Requests");
@@ -56,7 +64,6 @@ public class RequestFrame {
 
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Event handling untuk tombol
         btnViewAll.addActionListener(e -> loadData(null));
         btnViewCompleted.addActionListener(e -> loadData("Completed"));
         btnViewPending.addActionListener(e -> loadData("Pending"));
@@ -74,22 +81,24 @@ public class RequestFrame {
         try {
             List<PickupRequest> requests;
             if (statusFilter == null) {
-                requests = controller.getAllRequests(); // Semua data
+                requests = controller.getAllRequests();
             } else {
-                requests = controller.getRequestsByStatus(statusFilter); // Data dengan filter status
+                requests = controller.getRequestsByStatus(statusFilter);
             }
-            tableModel.setRowCount(0); // Hapus data lama dari tabel
+            tableModel.setRowCount(0);
             for (PickupRequest request : requests) {
                 tableModel.addRow(new Object[]{
                         request.getRequestId(),
                         request.getUserId(),
                         request.getCourierId(),
                         request.getStatus(),
-                        request.getPoints()
+                        request.getPoints(),
+                        request.getWasteType()
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Failed to load data: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -97,14 +106,17 @@ public class RequestFrame {
         JTextField requestIdField = new JTextField();
         JTextField userIdField = new JTextField();
         JTextField courierIdField = new JTextField();
+        JTextField wasteTypeField = new JTextField();
 
         Object[] fields = {
                 "Request ID:", requestIdField,
                 "User ID:", userIdField,
-                "Courier ID:", courierIdField
+                "Courier ID:", courierIdField,
+                "Waste Type:", wasteTypeField
         };
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Track Request", JOptionPane.OK_CANCEL_OPTION);
+        int option = JOptionPane.showConfirmDialog(frame, fields, "Track Request", 
+            JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try {
                 String requestId = requestIdField.getText();
@@ -112,18 +124,20 @@ public class RequestFrame {
                 String courierId = courierIdField.getText();
 
                 List<PickupRequest> results = controller.trackRequest(requestId, userId, courierId);
-                tableModel.setRowCount(0); // Hapus data lama dari tabel
+                tableModel.setRowCount(0);
                 for (PickupRequest request : results) {
                     tableModel.addRow(new Object[]{
                             request.getRequestId(),
                             request.getUserId(),
                             request.getCourierId(),
                             request.getStatus(),
-                            request.getPoints()
+                            request.getPoints(),
+                            request.getWasteType()
                     });
                 }
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Failed to track request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Failed to track request: " + e.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

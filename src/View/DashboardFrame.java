@@ -33,7 +33,8 @@ public class DashboardFrame {
                         request.getUserId(),
                         request.getCourierId(),
                         request.getStatus(),
-                        request.getPoints()
+                        request.getPoints(),
+                        request.getWasteType()
                 };
                 tableModel.addRow(rowData);
             }
@@ -54,8 +55,18 @@ public class DashboardFrame {
         frame.add(lblTitle, BorderLayout.NORTH);
 
         // Tabel untuk menampilkan data
-        tableModel = new DefaultTableModel(new String[]{"Request ID", "User ID", "Courier ID", "Status", "Points"}, 0);
-        table = new JTable(tableModel); // Gunakan variabel kelas
+        tableModel = new DefaultTableModel(
+            new String[]{
+                "ID Permintaan", 
+                "ID Pengguna", 
+                "ID Kurir", 
+                "Status", 
+                "Poin", 
+                "Jenis Sampah"
+            }, 
+            0
+        );
+        table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
         frame.add(scrollPane, BorderLayout.CENTER);
 
@@ -115,7 +126,8 @@ public class DashboardFrame {
                         request.getUserId(),
                         request.getCourierId(),
                         request.getStatus(),
-                        request.getPoints()
+                        request.getPoints(),
+                        request.getWasteType()
                 });
             }
         } catch (SQLException e) {
@@ -129,13 +141,15 @@ public class DashboardFrame {
         JTextField courierIdField = new JTextField();
         JTextField statusField = new JTextField();
         JTextField pointsField = new JTextField();
+        JTextField wasteTypeField = new JTextField(); // Gunakan JTextField untuk waste type
 
         Object[] fields = {
                 "Request ID:", requestIdField,
                 "User ID:", userIdField,
                 "Courier ID:", courierIdField,
                 "Status:", statusField,
-                "Points:", pointsField
+                "Points:", pointsField,
+                "Waste Type:", wasteTypeField
         };
 
         int option = JOptionPane.showConfirmDialog(frame, fields, "Create New Request", JOptionPane.OK_CANCEL_OPTION);
@@ -145,22 +159,36 @@ public class DashboardFrame {
                 String userId = userIdField.getText().trim();
                 String courierId = courierIdField.getText().trim();
                 String status = statusField.getText().trim();
-                int points = Integer.parseInt(pointsField.getText().trim());
+                String wasteType = wasteTypeField.getText().trim();
 
                 // Validasi
-                if (requestId.isEmpty() || userId.isEmpty() || courierId.isEmpty() || status.isEmpty()) {
+                if (requestId.isEmpty() || userId.isEmpty() || courierId.isEmpty() || 
+                    status.isEmpty() || wasteType.isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "All fields must be filled!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
+                int points;
+                try {
+                    points = Integer.parseInt(pointsField.getText().trim());
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(frame, "Points must be a valid number!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
                 // Simpan data ke database
-                PickupRequest request = new PickupRequest(requestId, userId, courierId, status, points);
+                PickupRequest request = new PickupRequest(
+                    requestId,
+                    userId,
+                    courierId,
+                    status,
+                    points,
+                    wasteType
+                );
                 controller.addRequest(request);
 
                 JOptionPane.showMessageDialog(frame, "Request added successfully!");
-                loadTableData(); // Refresh tabel
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(frame, "Points must be a valid number!", "Error", JOptionPane.ERROR_MESSAGE);
+                loadTableData();
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(frame, "Failed to add request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -175,24 +203,27 @@ public class DashboardFrame {
         }
 
         // Ambil data dari tabel berdasarkan baris yang dipilih
-        String requestId = (String) table.getValueAt(selectedRow, 0); // Kolom 0: Request ID
-        String userId = (String) table.getValueAt(selectedRow, 1);   // Kolom 1: User ID
-        String courierId = (String) table.getValueAt(selectedRow, 2); // Kolom 2: Courier ID
-        String status = (String) table.getValueAt(selectedRow, 3);    // Kolom 3: Status
-        String points = table.getValueAt(selectedRow, 4).toString();  // Kolom 4: Points
+        String requestId = (String) table.getValueAt(selectedRow, 0);
+        String userId = (String) table.getValueAt(selectedRow, 1);
+        String courierId = (String) table.getValueAt(selectedRow, 2);
+        String status = (String) table.getValueAt(selectedRow, 3);
+        String points = table.getValueAt(selectedRow, 4).toString();
+        String wasteType = (String) table.getValueAt(selectedRow, 5); // Ambil waste type yang ada
 
         // Buat JTextField untuk pengeditan
         JTextField userIdField = new JTextField(userId);
         JTextField courierIdField = new JTextField(courierId);
         JTextField statusField = new JTextField(status);
         JTextField pointsField = new JTextField(points);
+        JTextField wasteTypeField = new JTextField(wasteType); // Gunakan JTextField untuk waste type
 
         // Tampilkan dialog input untuk mengedit data
         Object[] fields = {
                 "User ID:", userIdField,
                 "Courier ID:", courierIdField,
                 "Status:", statusField,
-                "Points:", pointsField
+                "Points:", pointsField,
+                "Waste Type:", wasteTypeField
         };
 
         int option = JOptionPane.showConfirmDialog(frame, fields, "Update Request", JOptionPane.OK_CANCEL_OPTION);
@@ -202,7 +233,8 @@ public class DashboardFrame {
                 if (userIdField.getText().trim().isEmpty() ||
                         courierIdField.getText().trim().isEmpty() ||
                         statusField.getText().trim().isEmpty() ||
-                        pointsField.getText().trim().isEmpty()) {
+                        pointsField.getText().trim().isEmpty() ||
+                        wasteTypeField.getText().trim().isEmpty()) {
                     JOptionPane.showMessageDialog(frame, "All fields must be filled", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -221,7 +253,8 @@ public class DashboardFrame {
                         userIdField.getText().trim(),
                         courierIdField.getText().trim(),
                         statusField.getText().trim(),
-                        pointsValue
+                        pointsValue,
+                        wasteTypeField.getText().trim()
                 );
 
                 controller.updateRequest(updatedRequest);
@@ -267,6 +300,7 @@ public class DashboardFrame {
                 reportContent.append("Courier ID: ").append(request.getCourierId()).append("\n");
                 reportContent.append("Status: ").append(request.getStatus()).append("\n");
                 reportContent.append("Points: ").append(request.getPoints()).append("\n");
+                reportContent.append("Waste Type: ").append(request.getWasteType()).append("\n");
                 reportContent.append("----------------------------\n");
             }
 
@@ -293,6 +327,7 @@ public class DashboardFrame {
                 reportContent.append("Courier ID: ").append(request.getCourierId()).append("\n");
                 reportContent.append("Status: ").append(request.getStatus()).append("\n");
                 reportContent.append("Points: ").append(request.getPoints()).append("\n");
+                reportContent.append("Waste Type: ").append(request.getWasteType()).append("\n");
                 reportContent.append("----------------------------\n");
             }
 
@@ -326,6 +361,7 @@ public class DashboardFrame {
                     document.add(new com.itextpdf.text.Paragraph("Courier ID: " + request.getCourierId()));
                     document.add(new com.itextpdf.text.Paragraph("Status: " + request.getStatus()));
                     document.add(new com.itextpdf.text.Paragraph("Points: " + request.getPoints()));
+                    document.add(new com.itextpdf.text.Paragraph("Waste Type: " + request.getWasteType()));
                     document.add(new com.itextpdf.text.Paragraph("----------------------------"));
                 }
 

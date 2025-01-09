@@ -17,7 +17,7 @@ public class PickupRequestController {
 
     // CREATE: Tambah permintaan baru
     public void addRequest(PickupRequest request) throws SQLException {
-        String query = "INSERT INTO pickup_requests (request_id, user_id, courier_id, status, points) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO pickup_requests (request_id, user_id, courier_id, status, points, waste_type) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
@@ -26,6 +26,7 @@ public class PickupRequestController {
             stmt.setString(3, request.getCourierId());
             stmt.setString(4, request.getStatus());
             stmt.setInt(5, request.getPoints());
+            stmt.setString(6, request.getWasteType()); // Tambah waste type
 
             stmt.executeUpdate();
         }
@@ -41,16 +42,16 @@ public class PickupRequestController {
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                String requestId = rs.getString("request_id");
-                String userId = rs.getString("user_id");
-                String courierId = rs.getString("courier_id");
-                String status = rs.getString("status");
-                int points = rs.getInt("points");
-
-                requests.add(new PickupRequest(requestId, userId, courierId, status, points));
+                requests.add(new PickupRequest(
+                    rs.getString("request_id"),
+                    rs.getString("user_id"),
+                    rs.getString("courier_id"),
+                    rs.getString("status"),
+                    rs.getInt("points"),
+                    rs.getString("waste_type")  // Tambah waste type
+                ));
             }
         }
-
         return requests;
     }
 
@@ -79,7 +80,8 @@ public class PickupRequestController {
                         rs.getString("user_id"),
                         rs.getString("courier_id"),
                         rs.getString("status"),
-                        rs.getInt("points")
+                        rs.getInt("points"),
+                        rs.getString("waste_type")
                 );
                 requests.add(request);
             }
@@ -90,6 +92,7 @@ public class PickupRequestController {
     public List<PickupRequest> trackRequest(String requestId, String userId, String courierId) throws SQLException {
         List<PickupRequest> requests = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM pickup_requests WHERE 1=1");
+        
         if (!requestId.isEmpty()) query.append(" AND request_id = ?");
         if (!userId.isEmpty()) query.append(" AND user_id = ?");
         if (!courierId.isEmpty()) query.append(" AND courier_id = ?");
@@ -107,7 +110,8 @@ public class PickupRequestController {
                         rs.getString("user_id"),
                         rs.getString("courier_id"),
                         rs.getString("status"),
-                        rs.getInt("points")
+                        rs.getInt("points"),
+                        rs.getString("waste_type")
                 );
                 requests.add(request);
             }
@@ -116,7 +120,7 @@ public class PickupRequestController {
     }
 
     public void updateRequest(PickupRequest request) throws SQLException {
-        String query = "UPDATE pickup_requests SET user_id = ?, courier_id = ?, status = ?, points = ? WHERE request_id = ?";
+        String query = "UPDATE pickup_requests SET user_id = ?, courier_id = ?, status = ?, points = ?, waste_type = ? WHERE request_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
@@ -124,7 +128,8 @@ public class PickupRequestController {
             stmt.setString(2, request.getCourierId());
             stmt.setString(3, request.getStatus());
             stmt.setInt(4, request.getPoints());
-            stmt.setString(5, request.getRequestId()); // Perhatikan perubahan kolom ini
+            stmt.setString(5, request.getWasteType());
+            stmt.setString(6, request.getRequestId());
 
             stmt.executeUpdate();
         }
