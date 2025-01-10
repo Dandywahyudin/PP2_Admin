@@ -33,15 +33,15 @@ public class RequestFrame {
         frame.add(lblRequest, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(
-            new String[]{
-                "ID Permintaan", 
-                "ID Pengguna", 
-                "ID Kurir", 
-                "Status", 
-                "Poin", 
-                "Jenis Sampah"
-            }, 
-            0
+                new String[]{
+                        "ID Permintaan",
+                        "ID Pengguna",
+                        "ID Kurir",
+                        "Status",
+                        "Poin",
+                        "Jenis Sampah"
+                },
+                0
         );
         JTable table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
@@ -97,33 +97,53 @@ public class RequestFrame {
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load data: " + e.getMessage(), 
-                "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Failed to load data: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void trackRequest() {
         JTextField requestIdField = new JTextField();
-        JTextField userIdField = new JTextField();
-        JTextField courierIdField = new JTextField();
+        JComboBox<String> userIdComboBox = new JComboBox<>();
+        JComboBox<String> courierIdComboBox = new JComboBox<>();
         JTextField wasteTypeField = new JTextField();
+
+        try {
+            List<String> userIds = controller.getAllUserIds();
+            List<String> courierIds = controller.getAllCourierIds();
+
+            for (String userId : userIds) {
+                userIdComboBox.addItem(userId);
+            }
+            for (String courierId : courierIds) {
+                courierIdComboBox.addItem(courierId);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(frame, "Failed to load users or couriers: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         Object[] fields = {
                 "Request ID:", requestIdField,
-                "User ID:", userIdField,
-                "Courier ID:", courierIdField,
+                "User ID:", userIdComboBox,
+                "Courier ID:", courierIdComboBox,
                 "Waste Type:", wasteTypeField
         };
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Track Request", 
-            JOptionPane.OK_CANCEL_OPTION);
+        int option = JOptionPane.showConfirmDialog(frame, fields, "Track Request", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try {
-                String requestId = requestIdField.getText();
-                String userId = userIdField.getText();
-                String courierId = courierIdField.getText();
+                String requestId = requestIdField.getText().trim();
+                String userId = (String) userIdComboBox.getSelectedItem();
+                String courierId = (String) courierIdComboBox.getSelectedItem();
+                String wasteType = wasteTypeField.getText().trim();
 
-                List<PickupRequest> results = controller.trackRequest(requestId, userId, courierId);
+                if (requestId.isEmpty() && userId == null && courierId == null && wasteType.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "At least one field must be filled!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                List<PickupRequest> results = controller.trackRequest(requestId, userId, courierId, wasteType);
                 tableModel.setRowCount(0);
                 for (PickupRequest request : results) {
                     tableModel.addRow(new Object[]{
@@ -135,9 +155,12 @@ public class RequestFrame {
                             request.getWasteType()
                     });
                 }
+
+                if (results.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "No matching requests found.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Failed to track request: " + e.getMessage(), 
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Failed to track request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }

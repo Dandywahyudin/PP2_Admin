@@ -32,6 +32,32 @@ public class PickupRequestController {
         }
     }
 
+    // Ambil semua User ID dari tabel Users
+    public List<String> getAllUserIds() throws SQLException {
+        List<String> userIds = new ArrayList<>();
+        String query = "SELECT user_id FROM Users";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                userIds.add(rs.getString("user_id"));
+            }
+        }
+        return userIds;
+    }
+
+    // Ambil semua Courier ID dari tabel Couriers
+    public List<String> getAllCourierIds() throws SQLException {
+        List<String> courierIds = new ArrayList<>();
+        String query = "SELECT courier_id FROM Couriers";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                courierIds.add(rs.getString("courier_id"));
+            }
+        }
+        return courierIds;
+    }
+
     // READ: Ambil semua data permintaan
     public List<PickupRequest> getAllRequests() throws SQLException {
         List<PickupRequest> requests = new ArrayList<>();
@@ -89,19 +115,21 @@ public class PickupRequestController {
         return requests;
     }
 
-    public List<PickupRequest> trackRequest(String requestId, String userId, String courierId) throws SQLException {
+    public List<PickupRequest> trackRequest(String requestId, String userId, String courierId, String wasteType) throws SQLException {
         List<PickupRequest> requests = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM pickup_requests WHERE 1=1");
-        
+
         if (!requestId.isEmpty()) query.append(" AND request_id = ?");
         if (!userId.isEmpty()) query.append(" AND user_id = ?");
         if (!courierId.isEmpty()) query.append(" AND courier_id = ?");
+        if (!wasteType.isEmpty()) query.append(" AND waste_type = ?");
 
         try (PreparedStatement stmt = connection.prepareStatement(query.toString())) {
             int index = 1;
             if (!requestId.isEmpty()) stmt.setString(index++, requestId);
             if (!userId.isEmpty()) stmt.setString(index++, userId);
             if (!courierId.isEmpty()) stmt.setString(index++, courierId);
+            if (!wasteType.isEmpty()) stmt.setString(index++, wasteType);
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -118,6 +146,21 @@ public class PickupRequestController {
         }
         return requests;
     }
+
+    public int getTotalPointsForCourier(String courierId) throws SQLException {
+        String query = "SELECT SUM(points) AS total_points FROM pickup_requests WHERE courier_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, courierId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total_points");
+                } else {
+                    return 0; // Return 0 if there's no data
+                }
+            }
+        }
+    }
+
 
     public void updateRequest(PickupRequest request) throws SQLException {
         String query = "UPDATE pickup_requests SET user_id = ?, courier_id = ?, status = ?, points = ?, waste_type = ? WHERE request_id = ?";
