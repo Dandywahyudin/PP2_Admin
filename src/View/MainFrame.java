@@ -27,6 +27,8 @@ public class MainFrame {
                 this::openManageUsers,
                 this::openCourier,
                 this::openHistory,
+                this::openUserRequest,
+                this::openCourierRequest,
                 e -> System.exit(0)
         ));
 
@@ -39,6 +41,8 @@ public class MainFrame {
         JPanel requestPanel = new RequestFrame();
         JPanel manageUsersPanel = new UserFrame(); // Make sure UserFrame is added directly
         JPanel courierPanel = new CourierView(); // Make sure CourierView is added directly
+        JPanel requestUser = new RequestUserView();
+        JPanel requestCourier = new RequestCourierView();
         JPanel historyPanel = new HistoryFrame();
 
         // Add all panels to the mainPanel
@@ -46,6 +50,8 @@ public class MainFrame {
         mainPanel.add(requestPanel, "Request");
         mainPanel.add(manageUsersPanel, "ManageUsers");
         mainPanel.add(courierPanel, "Courier");
+        mainPanel.add(requestUser, "RequestUser");
+        mainPanel.add(requestCourier, "CourierRequest");
         mainPanel.add(historyPanel, "History");
 
         // Add the mainPanel to the frame
@@ -71,18 +77,12 @@ public class MainFrame {
         cardLayout.show(mainPanel, "Courier");
     }
 
+    private void openUserRequest(ActionEvent e) {cardLayout.show(mainPanel, "RequestUser");}
+
+    private void openCourierRequest(ActionEvent e) {cardLayout.show(mainPanel, "CourierRequest");}
+
     private void openHistory(ActionEvent e) {
         cardLayout.show(mainPanel, "History");
-    }
-
-    // Create a dummy panel for placeholder (you can customize or remove this if not needed)
-    private JPanel createDummyPanel(String text) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        JLabel label = new JLabel(text, SwingConstants.CENTER);
-        label.setFont(new Font("Arial", Font.BOLD, 24));
-        panel.add(label, BorderLayout.CENTER);
-        return panel;
     }
 
     public static void main(String[] args) {
