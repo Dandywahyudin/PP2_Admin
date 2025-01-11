@@ -24,7 +24,7 @@ public class RequestFrame extends JPanel {
     private void initializeUI() {
         setLayout(new BorderLayout());
 
-        JLabel lblRequest = new JLabel("Requests", SwingConstants.CENTER);
+        JLabel lblRequest = new JLabel("Permintaan Penjemputan Sampah", SwingConstants.CENTER);
         lblRequest.setFont(new Font("Arial", Font.BOLD, 24));
         add(lblRequest, BorderLayout.NORTH);  // Menambahkan JLabel ke panel ini
 

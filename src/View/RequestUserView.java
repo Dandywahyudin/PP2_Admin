@@ -24,7 +24,7 @@ public class RequestUserView extends JPanel {
     private void initializeUI() {
         setLayout(new BorderLayout());
 
-        JLabel lblRequest = new JLabel("Penjemputan Masyarakat", SwingConstants.CENTER);
+        JLabel lblRequest = new JLabel("Permintaan Masyarakat", SwingConstants.CENTER);
         lblRequest.setFont(new Font("Arial", Font.BOLD, 24));
         add(lblRequest, BorderLayout.NORTH);
 
@@ -41,13 +41,6 @@ public class RequestUserView extends JPanel {
         JTable table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnBack = new JButton("Back to Dashboard");
-
-        buttonPanel.add(btnBack);
-        add(buttonPanel, BorderLayout.SOUTH);
-
     }
 
     private void loadData() {

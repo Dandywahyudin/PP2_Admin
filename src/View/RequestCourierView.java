@@ -22,7 +22,7 @@ public class RequestCourierView extends JPanel {
     private void initializeUI() {
         setLayout(new BorderLayout());
 
-        JLabel lblTitle = new JLabel("Penjemputan Kurir", SwingConstants.CENTER);
+        JLabel lblTitle = new JLabel("Permintaan Kurir", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
         add(lblTitle, BorderLayout.NORTH);
 
