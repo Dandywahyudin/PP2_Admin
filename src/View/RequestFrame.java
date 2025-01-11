@@ -6,6 +6,8 @@ import Model.PickupRequest;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,12 +15,25 @@ public class RequestFrame extends JPanel {
     private JPanel mainPanel;
     private PickupRequestController controller;
     private DefaultTableModel tableModel;
+    private String currentStatusFilter = null;
 
-    public RequestFrame() {
-        this.mainPanel = mainPanel;  // Menyimpan panel utama dari MainFrame
+    public RequestFrame(JPanel mainPanel) {
+        this.mainPanel = mainPanel;
         this.controller = new PickupRequestController();
         initializeUI();
+        
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                refreshData();
+            }
+        });
+        
         loadData(null);
+    }
+
+    public void refreshData() {
+        loadData(currentStatusFilter);
     }
 
     private void initializeUI() {
@@ -26,7 +41,7 @@ public class RequestFrame extends JPanel {
 
         JLabel lblRequest = new JLabel("Requests", SwingConstants.CENTER);
         lblRequest.setFont(new Font("Arial", Font.BOLD, 24));
-        add(lblRequest, BorderLayout.NORTH);  // Menambahkan JLabel ke panel ini
+        add(lblRequest, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(
                 new String[] {
@@ -41,7 +56,7 @@ public class RequestFrame extends JPanel {
         );
         JTable table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
-        add(scrollPane, BorderLayout.CENTER);  // Menambahkan JTable ke panel
+        add(scrollPane, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new GridLayout(2, 3, 10, 10));
         JButton btnViewAll = new JButton("View All Requests");
@@ -58,9 +73,8 @@ public class RequestFrame extends JPanel {
         buttonPanel.add(btnTrackRequest);
         buttonPanel.add(btnBack);
 
-        add(buttonPanel, BorderLayout.SOUTH);  // Menambahkan button panel ke panel utama
+        add(buttonPanel, BorderLayout.SOUTH);
 
-        // Event Handling
         btnViewAll.addActionListener(e -> loadData(null));
         btnViewCompleted.addActionListener(e -> loadData("Completed"));
         btnViewPending.addActionListener(e -> loadData("Pending"));
@@ -70,6 +84,7 @@ public class RequestFrame extends JPanel {
     }
 
     private void loadData(String statusFilter) {
+        this.currentStatusFilter = statusFilter;
         try {
             List<PickupRequest> requests;
             if (statusFilter == null) {
@@ -77,7 +92,7 @@ public class RequestFrame extends JPanel {
             } else {
                 requests = controller.getRequestsByStatus(statusFilter);
             }
-            tableModel.setRowCount(0);  // Menghapus data lama
+            tableModel.setRowCount(0);
             for (PickupRequest request : requests) {
                 tableModel.addRow(new Object[] {
                         request.getRequestId(),
@@ -136,7 +151,7 @@ public class RequestFrame extends JPanel {
                 }
 
                 List<PickupRequest> results = controller.trackRequest(requestId, userId, courierId, wasteType);
-                tableModel.setRowCount(0);  // Clear the table
+                tableModel.setRowCount(0);
                 for (PickupRequest request : results) {
                     tableModel.addRow(new Object[] {
                             request.getRequestId(),
@@ -158,8 +173,7 @@ public class RequestFrame extends JPanel {
     }
 
     private void navigateBack() {
-        // Ganti panel dengan panel sebelumnya (misalnya Dashboard)
         CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
-        cardLayout.show(mainPanel, "Dashboard"); // Ganti dengan nama panel sebelumnya sesuai CardLayout
+        cardLayout.show(mainPanel, "Dashboard");
     }
 }

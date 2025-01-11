@@ -131,14 +131,13 @@ public class DashboardFrame extends JPanel {
 
     private void createRequest() {
         try {
-            // Ambil data userId dan courierId dari database
-            List<String> userIds = controller.getAllUserIds(); // Anda perlu membuat metode untuk ini
-            List<String> courierIds = controller.getAllCourierIds(); // Anda perlu membuat metode untuk ini
+            List<String> userIds = controller.getAllUserIds();
+            List<String> courierIds = controller.getAllCourierIds();
 
             JComboBox<String> userIdComboBox = new JComboBox<>(userIds.toArray(new String[0]));
             JComboBox<String> courierIdComboBox = new JComboBox<>(courierIds.toArray(new String[0]));
             JTextField requestIdField = new JTextField();
-            JTextField statusField = new JTextField();
+            JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"Pending", "Ongoing", "Completed"});
             JTextField pointsField = new JTextField();
             JTextField wasteTypeField = new JTextField();
 
@@ -146,7 +145,7 @@ public class DashboardFrame extends JPanel {
                     "Request ID:", requestIdField,
                     "User ID:", userIdComboBox,
                     "Courier ID:", courierIdComboBox,
-                    "Status:", statusField,
+                    "Status:", statusComboBox,
                     "Points:", pointsField,
                     "Waste Type:", wasteTypeField
             };
@@ -156,7 +155,7 @@ public class DashboardFrame extends JPanel {
                 String requestId = requestIdField.getText().trim();
                 String userId = (String) userIdComboBox.getSelectedItem();
                 String courierId = (String) courierIdComboBox.getSelectedItem();
-                String status = statusField.getText().trim();
+                String status = (String) statusComboBox.getSelectedItem();
                 String wasteType = wasteTypeField.getText().trim();
 
                 if (requestId.isEmpty() || userId == null || courierId == null || status.isEmpty() || wasteType.isEmpty()) {
@@ -211,7 +210,10 @@ public class DashboardFrame extends JPanel {
             userIdComboBox.setSelectedItem(userId);
             courierIdComboBox.setSelectedItem(courierId);
 
-            JTextField statusField = new JTextField(status);
+            // Replace JTextField with JComboBox for status
+            JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"Pending", "Ongoing", "Completed"});
+            statusComboBox.setSelectedItem(status);  // Set current status as selected
+            
             JTextField pointsField = new JTextField(points);
             JTextField wasteTypeField = new JTextField(wasteType);
 
@@ -219,7 +221,7 @@ public class DashboardFrame extends JPanel {
             Object[] fields = {
                     "User ID:", userIdComboBox,
                     "Courier ID:", courierIdComboBox,
-                    "Status:", statusField,
+                    "Status:", statusComboBox,
                     "Points:", pointsField,
                     "Waste Type:", wasteTypeField
             };
@@ -227,7 +229,8 @@ public class DashboardFrame extends JPanel {
             int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Update Request", JOptionPane.OK_CANCEL_OPTION);
             if (option == JOptionPane.OK_OPTION) {
                 if (userIdComboBox.getSelectedItem() == null || courierIdComboBox.getSelectedItem() == null ||
-                        statusField.getText().trim().isEmpty() || pointsField.getText().trim().isEmpty() ||
+                        statusComboBox.getSelectedItem() == null ||
+                        pointsField.getText().trim().isEmpty() ||
                         wasteTypeField.getText().trim().isEmpty()) {
                     JOptionPane.showMessageDialog(mainPanel, "All fields must be filled", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -246,7 +249,7 @@ public class DashboardFrame extends JPanel {
                         requestId,
                         (String) userIdComboBox.getSelectedItem(),
                         (String) courierIdComboBox.getSelectedItem(),
-                        statusField.getText().trim(),
+                        (String) statusComboBox.getSelectedItem(),
                         pointsValue,
                         wasteTypeField.getText().trim()
                 );
