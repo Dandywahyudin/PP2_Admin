@@ -41,12 +41,10 @@ public class UserFrame extends JPanel{
         JButton btnCreate = new JButton("Daftar Masyarakat");
         JButton btnUpdate = new JButton("Ubah Data Masyarakat");
         JButton btnDelete = new JButton("Hapus Data Masyarakat");
-        JButton btnBack = new JButton("Kembali");
 
         crudPanel.add(btnCreate);
         crudPanel.add(btnUpdate);
         crudPanel.add(btnDelete);
-        crudPanel.add(btnBack);
 
         add(crudPanel, BorderLayout.SOUTH);
 
@@ -54,7 +52,6 @@ public class UserFrame extends JPanel{
         btnCreate.addActionListener(e -> createUser());
         btnUpdate.addActionListener(e -> updateUser());
         btnDelete.addActionListener(e -> deleteUser());
-        btnBack.addActionListener(e -> navigateBack());
 
     }
 
