@@ -26,6 +26,7 @@ public class MainFrame {
                 this::openRequest,
                 this::openManageUsers,
                 this::openCourier,
+                this::openHistory,
                 e -> System.exit(0)
         ));
 
@@ -38,12 +39,14 @@ public class MainFrame {
         JPanel requestPanel = new RequestFrame();
         JPanel manageUsersPanel = new UserFrame(); // Make sure UserFrame is added directly
         JPanel courierPanel = new CourierView(); // Make sure CourierView is added directly
+        JPanel historyPanel = new HistoryFrame();
 
         // Add all panels to the mainPanel
         mainPanel.add(dashboardPanel, "Dashboard");
         mainPanel.add(requestPanel, "Request");
         mainPanel.add(manageUsersPanel, "ManageUsers");
         mainPanel.add(courierPanel, "Courier");
+        mainPanel.add(historyPanel, "History");
 
         // Add the mainPanel to the frame
         frame.add(mainPanel, BorderLayout.CENTER);
@@ -66,6 +69,10 @@ public class MainFrame {
 
     private void openCourier(ActionEvent e) {
         cardLayout.show(mainPanel, "Courier");
+    }
+
+    private void openHistory(ActionEvent e) {
+        cardLayout.show(mainPanel, "History");
     }
 
     // Create a dummy panel for placeholder (you can customize or remove this if not needed)
