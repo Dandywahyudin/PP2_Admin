@@ -9,24 +9,23 @@ import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-public class DashboardFrame {
-    private JFrame frame;
+public class DashboardFrame extends JPanel {
     private PickupRequestController controller;
     private DefaultTableModel tableModel;
     private JTable table;
-    private JComboBox<String> courierComboBox;
+    private JPanel contentPanel;
+    private JPanel mainPanel;
 
     public DashboardFrame() {
+        this.mainPanel = mainPanel;
         this.controller = new PickupRequestController();
         initializeUI();
-        loadData(); // Load data awal
+        loadData();
     }
 
     private void loadTableData() {
         try {
-            tableModel.setRowCount(0); // Bersihkan data di tabel
-
-            // Ambil data dari database
+            tableModel.setRowCount(0);
             List<PickupRequest> requests = controller.getAllRequests();
             for (PickupRequest request : requests) {
                 Object[] rowData = {
@@ -40,22 +39,20 @@ public class DashboardFrame {
                 tableModel.addRow(rowData);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "Failed to load data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void initializeUI() {
-        frame = new JFrame("Dashboard - E-Waste Management");
-        frame.setSize(800, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
+        contentPanel = new JPanel(new BorderLayout());
 
-        // Judul
+        // Title
         JLabel lblTitle = new JLabel("Dashboard", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
-        frame.add(lblTitle, BorderLayout.NORTH);
+        contentPanel.add(lblTitle, BorderLayout.NORTH);
 
-        // Tabel untuk menampilkan data
+        // Table
         tableModel = new DefaultTableModel(
                 new String[]{
                         "ID Permintaan",
@@ -69,71 +66,53 @@ public class DashboardFrame {
         );
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
-        frame.add(scrollPane, BorderLayout.CENTER);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Panel CRUD
+        // CRUD Panel
         JPanel crudPanel = new JPanel(new FlowLayout());
         JButton btnCreate = new JButton("Create");
         JButton btnUpdate = new JButton("Update");
         JButton btnDelete = new JButton("Delete");
-        JButton btnTotalPoints = new JButton("Total Points");
 
         crudPanel.add(btnCreate);
         crudPanel.add(btnUpdate);
         crudPanel.add(btnDelete);
-        crudPanel.add(btnTotalPoints);
 
-        frame.add(crudPanel, BorderLayout.SOUTH);
-
-        //tambah button print
+        // Report Panel
         JPanel reportPanel = new JPanel(new FlowLayout());
         JButton btnPrintPreview = new JButton("Print Preview");
         JButton btnPrint = new JButton("Print Report");
         JButton btnExportPDF = new JButton("Export to PDF");
+
         reportPanel.add(btnPrintPreview);
         reportPanel.add(btnPrint);
         reportPanel.add(btnExportPDF);
-        frame.add(reportPanel, BorderLayout.NORTH);
 
+        // Combine panels
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.add(reportPanel, BorderLayout.NORTH);
+        southPanel.add(crudPanel, BorderLayout.SOUTH);
 
-        // Tombol kembali ke menu utama
-        JButton btnBack = new JButton("Back to Main Menu");
-        btnBack.addActionListener(e -> {
-            frame.dispose();
-            new MainFrame(); // Membuka Main Menu
-        });
-        crudPanel.add(btnBack);
+        contentPanel.add(southPanel, BorderLayout.SOUTH);
 
-        // Event handling untuk CRUD
+        // Add event listeners
         btnCreate.addActionListener(e -> createRequest());
         btnUpdate.addActionListener(e -> updateRequest());
         btnDelete.addActionListener(e -> deleteRequest());
-        btnTotalPoints.addActionListener(e -> {
-            try { JComboBox<String> courierComboBox = new JComboBox<>();
-                // Creating ComboBox within action handler
-                List<String> courierIds = controller.getAllCourierIds();
-                for (String courierId : courierIds) {
-                    courierComboBox.addItem(courierId); }
-                Object[] dialogContent = { "Select Courier:", courierComboBox };
-                int option = JOptionPane.showConfirmDialog(frame, dialogContent, "Total Points", JOptionPane.OK_CANCEL_OPTION);
-                if (option == JOptionPane.OK_OPTION) {
-                    String selectedCourier = (String) courierComboBox.getSelectedItem();
-                    int totalPoints = controller.getTotalPointsForCourier(selectedCourier);
-                    JOptionPane.showMessageDialog(frame, "Total Points for courier " + selectedCourier + ": " + totalPoints); }
-            } catch (SQLException ex) { JOptionPane.showMessageDialog(frame, "Failed to calculate total points: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); }
-        });
-
-        //Event Listener untuk Tombol print pdf
         btnPrintPreview.addActionListener(e -> showPrintPreview());
         btnPrint.addActionListener(e -> printReport());
         btnExportPDF.addActionListener(e -> exportToPDF());
 
-        frame.setVisible(true);
+        // Add content panel to main panel
+        add(contentPanel, BorderLayout.CENTER);
     }
+
+    // The rest of the methods remain the same, but replace 'this' with 'parentFrame'
+    // in JOptionPane.showMessageDialog calls
 
     private void loadData() {
         try {
-            tableModel.setRowCount(0); // Hapus data lama
+            tableModel.setRowCount(0);
             for (PickupRequest request : controller.getAllRequests()) {
                 tableModel.addRow(new Object[]{
                         request.getRequestId(),
@@ -145,55 +124,43 @@ public class DashboardFrame {
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "Failed to load data: " + e.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void createRequest() {
-        JTextField requestIdField = new JTextField();
-        JComboBox<String> userIdComboBox = new JComboBox<>();
-        JComboBox<String> courierIdComboBox = new JComboBox<>();
-        JTextField statusField = new JTextField();
-        JTextField pointsField = new JTextField();
-        JTextField wasteTypeField = new JTextField();
-
         try {
-            // Ambil data User dan Courier dari database
-            List<String> userIds = controller.getAllUserIds();
-            List<String> courierIds = controller.getAllCourierIds();
+            // Ambil data userId dan courierId dari database
+            List<String> userIds = controller.getAllUserIds(); // Anda perlu membuat metode untuk ini
+            List<String> courierIds = controller.getAllCourierIds(); // Anda perlu membuat metode untuk ini
 
-            // Tambahkan ke JComboBox
-            for (String userId : userIds) {
-                userIdComboBox.addItem(userId);
-            }
-            for (String courierId : courierIds) {
-                courierIdComboBox.addItem(courierId);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load users or couriers: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+            JComboBox<String> userIdComboBox = new JComboBox<>(userIds.toArray(new String[0]));
+            JComboBox<String> courierIdComboBox = new JComboBox<>(courierIds.toArray(new String[0]));
+            JTextField requestIdField = new JTextField();
+            JTextField statusField = new JTextField();
+            JTextField pointsField = new JTextField();
+            JTextField wasteTypeField = new JTextField();
 
-        Object[] fields = {
-                "ID Permintaan:", requestIdField,
-                "ID Pengguna:", userIdComboBox,
-                "ID Kurir:", courierIdComboBox,
-                "Status:", statusField,
-                "Point:", pointsField,
-                "Jenis Sampah:", wasteTypeField
-        };
+            Object[] fields = {
+                    "Request ID:", requestIdField,
+                    "User ID:", userIdComboBox,
+                    "Courier ID:", courierIdComboBox,
+                    "Status:", statusField,
+                    "Points:", pointsField,
+                    "Waste Type:", wasteTypeField
+            };
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Create New Request", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            try {
+            int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Create New Request", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
                 String requestId = requestIdField.getText().trim();
                 String userId = (String) userIdComboBox.getSelectedItem();
                 String courierId = (String) courierIdComboBox.getSelectedItem();
                 String status = statusField.getText().trim();
                 String wasteType = wasteTypeField.getText().trim();
 
-                if (status.isEmpty() || wasteType.isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "All fields must be filled!", "Error", JOptionPane.ERROR_MESSAGE);
+                if (requestId.isEmpty() || userId == null || courierId == null || status.isEmpty() || wasteType.isEmpty()) {
+                    JOptionPane.showMessageDialog(mainPanel, "All fields must be filled!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
@@ -201,36 +168,29 @@ public class DashboardFrame {
                 try {
                     points = Integer.parseInt(pointsField.getText().trim());
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(frame, "Points must be a valid number!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(mainPanel, "Points must be a valid number!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                PickupRequest request = new PickupRequest(
-                        requestId.isEmpty() ? null : requestId, // Gunakan ID jika diisi
-                        userId,
-                        courierId,
-                        status,
-                        points,
-                        wasteType
-                );
-
+                PickupRequest request = new PickupRequest(requestId, userId, courierId, status, points, wasteType);
                 controller.addRequest(request);
-                JOptionPane.showMessageDialog(frame, "Request added successfully!");
+
+                JOptionPane.showMessageDialog(mainPanel, "Request added successfully!");
                 loadTableData();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Failed to add request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(mainPanel, "Failed to load data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void updateRequest() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(frame, "Please select a request to update", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "Please select a request to update", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // Ambil data dari tabel berdasarkan baris yang dipilih
+        // Ambil data dari row yang dipilih
         String requestId = (String) table.getValueAt(selectedRow, 0);
         String userId = (String) table.getValueAt(selectedRow, 1);
         String courierId = (String) table.getValueAt(selectedRow, 2);
@@ -238,54 +198,38 @@ public class DashboardFrame {
         String points = table.getValueAt(selectedRow, 4).toString();
         String wasteType = (String) table.getValueAt(selectedRow, 5);
 
-        // Buat JComboBox untuk userId dan courierId
-        JComboBox<String> userIdComboBox = new JComboBox<>();
-        JComboBox<String> courierIdComboBox = new JComboBox<>();
-        JTextField statusField = new JTextField(status);
-        JTextField pointsField = new JTextField(points);
-        JTextField wasteTypeField = new JTextField(wasteType);
-
         try {
-            // Ambil data User dan Courier dari database
-            List<String> userIds = controller.getAllUserIds();
-            List<String> courierIds = controller.getAllCourierIds();
+            // Ambil data userId dan courierId yang ada di database
+            List<String> userIds = controller.getAllUserIds(); // Ambil daftar userId
+            List<String> courierIds = controller.getAllCourierIds(); // Ambil daftar courierId
 
-            // Tambahkan ke JComboBox
-            for (String id : userIds) {
-                userIdComboBox.addItem(id);
-                if (id.equals(userId)) {
-                    userIdComboBox.setSelectedItem(id);
-                }
-            }
-            for (String id : courierIds) {
-                courierIdComboBox.addItem(id);
-                if (id.equals(courierId)) {
-                    courierIdComboBox.setSelectedItem(id);
-                }
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load users or couriers: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+            // Buat JComboBox untuk userId dan courierId
+            JComboBox<String> userIdComboBox = new JComboBox<>(userIds.toArray(new String[0]));
+            JComboBox<String> courierIdComboBox = new JComboBox<>(courierIds.toArray(new String[0]));
 
-        // Tampilkan dialog input untuk mengedit data
-        Object[] fields = {
-                "Request ID (Read-only):", new JLabel(requestId),
-                "User ID:", userIdComboBox,
-                "Courier ID:", courierIdComboBox,
-                "Status:", statusField,
-                "Points:", pointsField,
-                "Waste Type:", wasteTypeField
-        };
+            // Set nilai default pada JComboBox sesuai dengan data yang ada pada tabel
+            userIdComboBox.setSelectedItem(userId);
+            courierIdComboBox.setSelectedItem(courierId);
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Update Request", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            try {
-                // Validasi input
-                if (statusField.getText().trim().isEmpty() ||
-                        pointsField.getText().trim().isEmpty() ||
+            JTextField statusField = new JTextField(status);
+            JTextField pointsField = new JTextField(points);
+            JTextField wasteTypeField = new JTextField(wasteType);
+
+            // Menampilkan form untuk update
+            Object[] fields = {
+                    "User ID:", userIdComboBox,
+                    "Courier ID:", courierIdComboBox,
+                    "Status:", statusField,
+                    "Points:", pointsField,
+                    "Waste Type:", wasteTypeField
+            };
+
+            int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Update Request", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                if (userIdComboBox.getSelectedItem() == null || courierIdComboBox.getSelectedItem() == null ||
+                        statusField.getText().trim().isEmpty() || pointsField.getText().trim().isEmpty() ||
                         wasteTypeField.getText().trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(frame, "All fields must be filled", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(mainPanel, "All fields must be filled", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
@@ -293,11 +237,11 @@ public class DashboardFrame {
                 try {
                     pointsValue = Integer.parseInt(pointsField.getText().trim());
                 } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(frame, "Points must be a number", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(mainPanel, "Points must be a number", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                // Update data di database
+                // Buat objek PickupRequest dengan data yang telah diperbarui
                 PickupRequest updatedRequest = new PickupRequest(
                         requestId,
                         (String) userIdComboBox.getSelectedItem(),
@@ -307,13 +251,38 @@ public class DashboardFrame {
                         wasteTypeField.getText().trim()
                 );
 
+                // Panggil controller untuk memperbarui data di database
                 controller.updateRequest(updatedRequest);
+                loadTableData(); // Memuat data yang telah diperbarui
+                JOptionPane.showMessageDialog(mainPanel, "Request updated successfully!");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(mainPanel, "Failed to update request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-                // Perbarui tabel setelah data diupdate
+    private void deleteRequest() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(mainPanel, "Please select a request to delete",
+                    "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String requestId = (String) table.getValueAt(selectedRow, 0);
+        int option = JOptionPane.showConfirmDialog(mainPanel,
+                "Are you sure you want to delete this request?",
+                "Delete Request",
+                JOptionPane.YES_NO_OPTION);
+
+        if (option == JOptionPane.YES_OPTION) {
+            try {
+                controller.deleteRequest(requestId);
                 loadTableData();
-                JOptionPane.showMessageDialog(frame, "Request updated successfully!");
+                JOptionPane.showMessageDialog(mainPanel, "Request deleted successfully!");
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Failed to update request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(mainPanel, "Failed to delete request: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -323,6 +292,7 @@ public class DashboardFrame {
         try {
             List<PickupRequest> requests = controller.getAllRequests();
             StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
+
             for (PickupRequest request : requests) {
                 reportContent.append("Request ID: ").append(request.getRequestId()).append("\n");
                 reportContent.append("User ID: ").append(request.getUserId()).append("\n");
@@ -331,20 +301,24 @@ public class DashboardFrame {
                 reportContent.append("Points: ").append(request.getPoints()).append("\n");
                 reportContent.append("----------------------------\n");
             }
+
             JTextArea textArea = new JTextArea(reportContent.toString());
             textArea.setEditable(false);
             JScrollPane scrollPane = new JScrollPane(textArea);
             scrollPane.setPreferredSize(new Dimension(500, 400));
-            JOptionPane.showMessageDialog(frame, scrollPane, "Print Preview", JOptionPane.INFORMATION_MESSAGE);
+
+            JOptionPane.showMessageDialog(mainPanel, scrollPane, "Print Preview", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to generate report: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "Failed to generate report: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     //print report
     private void printReport() {
         try {
             List<PickupRequest> requests = controller.getAllRequests();
             StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
+
             for (PickupRequest request : requests) {
                 reportContent.append("Request ID: ").append(request.getRequestId()).append("\n");
                 reportContent.append("User ID: ").append(request.getUserId()).append("\n");
@@ -353,24 +327,30 @@ public class DashboardFrame {
                 reportContent.append("Points: ").append(request.getPoints()).append("\n");
                 reportContent.append("----------------------------\n");
             }
+
             JTextArea textArea = new JTextArea(reportContent.toString());
             textArea.print(); // Print dialog will open
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Failed to print report: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(mainPanel, "Failed to print report: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
     //export ke pdf langsung
     private void exportToPDF() {
         try {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setDialogTitle("Save as PDF");
-            int userSelection = fileChooser.showSaveDialog(frame);
+            int userSelection = fileChooser.showSaveDialog(mainPanel);
+
             if (userSelection == JFileChooser.APPROVE_OPTION) {
                 String filePath = fileChooser.getSelectedFile().getAbsolutePath() + ".pdf";
+
                 com.itextpdf.text.Document document = new com.itextpdf.text.Document();
                 com.itextpdf.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(filePath));
+
                 document.open();
                 document.add(new com.itextpdf.text.Paragraph("Pickup Requests Report\n\n"));
+
                 List<PickupRequest> requests = controller.getAllRequests();
                 for (PickupRequest request : requests) {
                     document.add(new com.itextpdf.text.Paragraph("Request ID: " + request.getRequestId()));
@@ -380,32 +360,12 @@ public class DashboardFrame {
                     document.add(new com.itextpdf.text.Paragraph("Points: " + request.getPoints()));
                     document.add(new com.itextpdf.text.Paragraph("----------------------------"));
                 }
+
                 document.close();
-                JOptionPane.showMessageDialog(frame, "Report exported to PDF successfully!");
+                JOptionPane.showMessageDialog(mainPanel, "Report exported to PDF successfully!");
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Failed to export report to PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-
-    private void deleteRequest() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(frame, "Please select a request to delete", "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String requestId = (String) table.getValueAt(selectedRow, 0);
-        int option = JOptionPane.showConfirmDialog(frame, "Are you sure you want to delete this request?", "Delete Request", JOptionPane.YES_NO_OPTION);
-        if (option == JOptionPane.YES_OPTION) {
-            try {
-                controller.deleteRequest(requestId);
-                loadTableData(); // Refresh data
-                JOptionPane.showMessageDialog(frame, "Request deleted successfully!");
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(frame, "Failed to delete request: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(mainPanel, "Failed to export report to PDF: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

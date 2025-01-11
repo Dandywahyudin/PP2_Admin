@@ -18,7 +18,7 @@ public class MenuBar {
         menuDashboard.addActionListener(dashboardListener);
         menuRequest.addActionListener(requestListener);
         menuManageUsers.addActionListener(manageUsersListener);
-        menuManageCouriers.addActionListener(e -> new CourierFrame());
+        menuManageCouriers.addActionListener(manageCouriersListener);
         menuExit.addActionListener(exitListener);
 
         menu.add(menuDashboard);
@@ -29,8 +29,6 @@ public class MenuBar {
         menu.add(menuExit);
 
         menuBar.add(menu);
-
-
 
         return menuBar;
     }

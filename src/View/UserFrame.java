@@ -11,43 +11,31 @@ import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
 
-public class UserFrame {
+public class UserFrame extends JPanel{
     private JFrame frame;
     private UserController controller;
     private DefaultTableModel tableModel;
     private JTable table;
+    private JPanel mainPanel;  // Menambahkan panel utama untuk card layout
 
     public UserFrame() {
+        this.mainPanel = mainPanel; // Diterima dari MainFrame untuk menjaga panel tetap di satu frame
         controller = new UserController();
         initializeUI();
         loadUserData(); // Load data awal
-        String userIdField = UserUtil.generateUserId();
-        System.out.println("Generated User ID: " + userIdField);
     }
 
     private void initializeUI() {
-        frame = new JFrame("Pendaftaran Masyarakat");
-        frame.setSize(800, 600);
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
-
-        MenuBar appMenuBar = new MenuBar();
-        frame.setJMenuBar(appMenuBar.createMenuBar(
-                this::openDashboard,
-                this::openRequest,
-                this::openManageUsers,
-                this::openCourier,
-                e -> System.exit(0)
-        ));
+        setLayout(new BorderLayout());
 
         JLabel lblTitle = new JLabel("Pendaftaran Masyarakat", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
-        frame.add(lblTitle, BorderLayout.NORTH);
+        add(lblTitle, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(new String[]{"ID Masyarakat", "Nama", "Email", "Nomor Handphone", "Alamat"}, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
-        frame.add(scrollPane, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
         JPanel crudPanel = new JPanel(new FlowLayout());
         JButton btnCreate = new JButton("Daftar Masyarakat");
@@ -60,15 +48,14 @@ public class UserFrame {
         crudPanel.add(btnDelete);
         crudPanel.add(btnBack);
 
-        frame.add(crudPanel, BorderLayout.SOUTH);
+        add(crudPanel, BorderLayout.SOUTH);
 
         // Event Handling
         btnCreate.addActionListener(e -> createUser());
         btnUpdate.addActionListener(e -> updateUser());
         btnDelete.addActionListener(e -> deleteUser());
-        btnBack.addActionListener(e -> frame.dispose());
+        btnBack.addActionListener(e -> navigateBack());
 
-        frame.setVisible(true);
     }
 
     private void loadUserData() {
@@ -85,7 +72,7 @@ public class UserFrame {
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(frame, "Failed to load user data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Failed to load user data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -105,7 +92,7 @@ public class UserFrame {
                 "Alamat:", addressField
         };
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Pendaftaran Masyarakat", JOptionPane.OK_CANCEL_OPTION);
+        int option = JOptionPane.showConfirmDialog(this, fields, "Pendaftaran Masyarakat", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try {
                 User user = new User(
@@ -116,10 +103,10 @@ public class UserFrame {
                         addressField.getText().trim()
                 );
                 controller.addUser(user);
-                JOptionPane.showMessageDialog(frame, "Berhasil!");
+                JOptionPane.showMessageDialog(this, "Berhasil!");
                 loadUserData();
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Gagal: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -127,7 +114,7 @@ public class UserFrame {
     private void updateUser() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(frame, "Pilih Masyarakat Yang Ingin di Ubah", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih Masyarakat Yang Ingin di Ubah", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -149,7 +136,7 @@ public class UserFrame {
                 "Alamat:", addressField
         };
 
-        int option = JOptionPane.showConfirmDialog(frame, fields, "Ubah Data Masyarakat", JOptionPane.OK_CANCEL_OPTION);
+        int option = JOptionPane.showConfirmDialog(this, fields, "Ubah Data Masyarakat", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try {
                 User user = new User(
@@ -160,10 +147,10 @@ public class UserFrame {
                         addressField.getText().trim()
                 );
                 controller.updateUser(user);
-                JOptionPane.showMessageDialog(frame, "Berhasil!");
+                JOptionPane.showMessageDialog(this, "Berhasil!");
                 loadUserData();
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Gagal! " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal! " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -171,36 +158,46 @@ public class UserFrame {
     private void deleteUser() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(frame, "Pilih Data Yang Ingin di Hapus", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Pilih Data Yang Ingin di Hapus", "Warning", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String userId = (String) table.getValueAt(selectedRow, 0);
-        int option = JOptionPane.showConfirmDialog(frame, "Apakah Kamu Yakin Ingin Menghapus", "Hapus Data", JOptionPane.YES_NO_OPTION);
+        int option = JOptionPane.showConfirmDialog(this, "Apakah Kamu Yakin Ingin Menghapus", "Hapus Data", JOptionPane.YES_NO_OPTION);
         if (option == JOptionPane.YES_OPTION) {
             try {
                 controller.deleteUser(userId);
-                JOptionPane.showMessageDialog(frame, "Berhasil!");
+                JOptionPane.showMessageDialog(this, "Berhasil!");
                 loadUserData();
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(frame, "Gagal: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Gagal: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
+    private void navigateBack() {
+        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
+        cardLayout.show(mainPanel, "Dashboard");  // Kembali ke dashboard tanpa membuka frame baru
+    }
+
+    // Update menu action untuk membuka panel yang sesuai
     private void openDashboard(ActionEvent e) {
-        new DashboardFrame(); // Navigasi ke halaman Dashboard
+        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
+        cardLayout.show(mainPanel, "Dashboard"); // Pindah ke dashboard
     }
 
     private void openRequest(ActionEvent e) {
-        new RequestFrame(frame); // Navigasi ke halaman Request
+        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
+        cardLayout.show(mainPanel, "Request");  // Pindah ke request
     }
 
     private void openManageUsers(ActionEvent e) {
-        new UserFrame(); // Navigasi ke halaman User Management
+        // Tetap di halaman yang sama, hanya perbarui data jika perlu
+        loadUserData();
     }
 
     private void openCourier(ActionEvent e) {
-        new CourierFrame(); // Navigasi ke halaman Pendaftaran Kurir
+        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
+        cardLayout.show(mainPanel, "Courier");  // Pindah ke halaman kurir
     }
 }

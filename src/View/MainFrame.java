@@ -6,6 +6,8 @@ import java.awt.event.ActionEvent;
 
 public class MainFrame {
     private JFrame frame;
+    private JPanel mainPanel;
+    private CardLayout cardLayout;
 
     public MainFrame() {
         initializeUI();
@@ -27,55 +29,53 @@ public class MainFrame {
                 e -> System.exit(0)
         ));
 
-        // Panel utama untuk tampilan awal
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1;
-        gbc.weighty = 1;
-        gbc.anchor = GridBagConstraints.CENTER;
+        // Initialize main panel with CardLayout
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
 
-        // Panel untuk menampung teks "E-Waste Dashboard" dan "Penjemputan Sampah"
-        JPanel titlePanel = new JPanel();
-        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
-        titlePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Create panels for different views (no need to recreate frames)
+        JPanel dashboardPanel = new DashboardFrame();
+        JPanel requestPanel = new RequestFrame();
+        JPanel manageUsersPanel = new UserFrame(); // Make sure UserFrame is added directly
+        JPanel courierPanel = new CourierView(); // Make sure CourierView is added directly
 
-        // Label untuk "E-Waste Dashboard"
-        JLabel lblTitle = new JLabel("E-Waste Dashboard", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Arial", Font.BOLD, 36));
-        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titlePanel.add(lblTitle);
+        // Add all panels to the mainPanel
+        mainPanel.add(dashboardPanel, "Dashboard");
+        mainPanel.add(requestPanel, "Request");
+        mainPanel.add(manageUsersPanel, "ManageUsers");
+        mainPanel.add(courierPanel, "Courier");
 
-        // Label untuk "Penjemputan Sampah"
-        JLabel lblPickup = new JLabel("Penjemputan Sampah", SwingConstants.CENTER);
-        lblPickup.setFont(new Font("Arial", Font.PLAIN, 20));
-        lblPickup.setAlignmentX(Component.CENTER_ALIGNMENT);
-        titlePanel.add(lblPickup);
-
-        // Add titlePanel to mainPanel
-        mainPanel.add(titlePanel, gbc);
-
+        // Add the mainPanel to the frame
         frame.add(mainPanel, BorderLayout.CENTER);
 
         frame.setVisible(true);
     }
 
+    // Methods to switch between views
     private void openDashboard(ActionEvent e) {
-        new DashboardFrame(); // Navigasi ke halaman Dashboard
+        cardLayout.show(mainPanel, "Dashboard");
     }
 
     private void openRequest(ActionEvent e) {
-        new RequestFrame(frame); // Navigasi ke halaman Request
+        cardLayout.show(mainPanel, "Request");
     }
 
     private void openManageUsers(ActionEvent e) {
-        new UserFrame(); // Navigasi ke halaman User Management
+        cardLayout.show(mainPanel, "ManageUsers");
     }
 
     private void openCourier(ActionEvent e) {
-        new CourierFrame(); // Navigasi ke halaman Pendaftaran Kurir
+        cardLayout.show(mainPanel, "Courier");
+    }
+
+    // Create a dummy panel for placeholder (you can customize or remove this if not needed)
+    private JPanel createDummyPanel(String text) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        JLabel label = new JLabel(text, SwingConstants.CENTER);
+        label.setFont(new Font("Arial", Font.BOLD, 24));
+        panel.add(label, BorderLayout.CENTER);
+        return panel;
     }
 
     public static void main(String[] args) {
