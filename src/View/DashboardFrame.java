@@ -107,9 +107,6 @@ public class DashboardFrame extends JPanel {
         add(contentPanel, BorderLayout.CENTER);
     }
 
-    // The rest of the methods remain the same, but replace 'this' with 'parentFrame'
-    // in JOptionPane.showMessageDialog calls
-
     private void loadData() {
         try {
             tableModel.setRowCount(0);
