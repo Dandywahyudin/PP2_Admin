@@ -15,6 +15,8 @@ public class DashboardFrame extends JPanel {
     private JTable table;
     private JPanel contentPanel;
     private JPanel mainPanel;
+    private JLabel totalPointsLabel;
+    private JComboBox<String> statusComboBox;
 
     public DashboardFrame() {
         this.mainPanel = mainPanel;
@@ -45,14 +47,12 @@ public class DashboardFrame extends JPanel {
 
     private void initializeUI() {
         setLayout(new BorderLayout());
-        contentPanel = new JPanel(new BorderLayout());
 
-        // Title
-        JLabel lblTitle = new JLabel("Dashboard", SwingConstants.CENTER);
-        lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
-        contentPanel.add(lblTitle, BorderLayout.NORTH);
+        JLabel lblDashboard = new JLabel("Dashboard", SwingConstants.CENTER);
+        lblDashboard.setFont(new Font("Arial", Font.BOLD, 24));
+        add(lblDashboard, BorderLayout.NORTH);
 
-        // Table
+        // Tabel utama
         tableModel = new DefaultTableModel(
                 new String[]{
                         "ID Permintaan",
@@ -66,54 +66,68 @@ public class DashboardFrame extends JPanel {
         );
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
-        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
-        // CRUD Panel
-        JPanel crudPanel = new JPanel(new FlowLayout());
+        // Panel untuk bagian bawah
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        
+        // Panel untuk total points dengan border line di atas dan bawah
+        JPanel totalPointsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        totalPointsLabel = new JLabel("Total Points: 0");
+        totalPointsLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        totalPointsPanel.add(totalPointsLabel);
+        totalPointsPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 1, 0, Color.BLACK), // Line border atas dan bawah
+                BorderFactory.createEmptyBorder(5, 0, 5, 0)  // Padding
+        ));
+        bottomPanel.add(totalPointsPanel, BorderLayout.NORTH);
+
+        // Panel untuk tombol-tombol
+        JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        
+        // Sub panel untuk tombol print dan export
+        JPanel printPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton btnPrintPreview = new JButton("Print Preview");
+        JButton btnPrintReport = new JButton("Print Report");
+        JButton btnExportPDF = new JButton("Export to PDF");
+        printPanel.add(btnPrintPreview);
+        printPanel.add(btnPrintReport);
+        printPanel.add(btnExportPDF);
+        
+        // Sub panel untuk tombol CRUD
+        JPanel crudPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JButton btnCreate = new JButton("Create");
         JButton btnUpdate = new JButton("Update");
         JButton btnDelete = new JButton("Delete");
-
         crudPanel.add(btnCreate);
         crudPanel.add(btnUpdate);
         crudPanel.add(btnDelete);
+        
+        buttonPanel.add(printPanel);
+        buttonPanel.add(crudPanel);
+        
+        bottomPanel.add(buttonPanel, BorderLayout.CENTER);
+        
+        add(bottomPanel, BorderLayout.SOUTH);
 
-        // Report Panel
-        JPanel reportPanel = new JPanel(new FlowLayout());
-        JButton btnPrintPreview = new JButton("Print Preview");
-        JButton btnPrint = new JButton("Print Report");
-        JButton btnExportPDF = new JButton("Export to PDF");
-
-        reportPanel.add(btnPrintPreview);
-        reportPanel.add(btnPrint);
-        reportPanel.add(btnExportPDF);
-
-        // Combine panels
-        JPanel southPanel = new JPanel(new BorderLayout());
-        southPanel.add(reportPanel, BorderLayout.NORTH);
-        southPanel.add(crudPanel, BorderLayout.SOUTH);
-
-        contentPanel.add(southPanel, BorderLayout.SOUTH);
-
-        // Add event listeners
+        // Action Listeners
         btnCreate.addActionListener(e -> createRequest());
         btnUpdate.addActionListener(e -> updateRequest());
         btnDelete.addActionListener(e -> deleteRequest());
-        btnPrintPreview.addActionListener(e -> showPrintPreview());
-        btnPrint.addActionListener(e -> printReport());
+        btnPrintPreview.addActionListener(e -> printPreview());
+        btnPrintReport.addActionListener(e -> printReport());
         btnExportPDF.addActionListener(e -> exportToPDF());
 
-        // Add content panel to main panel
-        add(contentPanel, BorderLayout.CENTER);
+        loadData();
     }
-
-    // The rest of the methods remain the same, but replace 'this' with 'parentFrame'
-    // in JOptionPane.showMessageDialog calls
 
     private void loadData() {
         try {
+            List<PickupRequest> requests = controller.getAllRequests();
             tableModel.setRowCount(0);
-            for (PickupRequest request : controller.getAllRequests()) {
+            int totalPoints = 0;
+            
+            for (PickupRequest request : requests) {
                 tableModel.addRow(new Object[]{
                         request.getRequestId(),
                         request.getUserId(),
@@ -122,17 +136,23 @@ public class DashboardFrame extends JPanel {
                         request.getPoints(),
                         request.getWasteType()
                 });
+                totalPoints += request.getPoints();
             }
+            
+            // Update total points label
+            totalPointsLabel.setText("Total Points: " + totalPoints);
+            
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(mainPanel, "Failed to load data: " + e.getMessage(),
+            JOptionPane.showMessageDialog(this, "Failed to load data: " + e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void createRequest() {
         try {
-            List<String> userIds = controller.getAllUserIds();
-            List<String> courierIds = controller.getAllCourierIds();
+            // Ambil data userId dan courierId dari database
+            List<String> userIds = controller.getAllUserIds(); // Anda perlu membuat metode untuk ini
+            List<String> courierIds = controller.getAllCourierIds(); // Anda perlu membuat metode untuk ini
 
             JComboBox<String> userIdComboBox = new JComboBox<>(userIds.toArray(new String[0]));
             JComboBox<String> courierIdComboBox = new JComboBox<>(courierIds.toArray(new String[0]));
@@ -210,10 +230,9 @@ public class DashboardFrame extends JPanel {
             userIdComboBox.setSelectedItem(userId);
             courierIdComboBox.setSelectedItem(courierId);
 
-            // Replace JTextField with JComboBox for status
             JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"Pending", "Ongoing", "Completed"});
-            statusComboBox.setSelectedItem(status);  // Set current status as selected
-            
+            statusComboBox.setSelectedItem(status);
+
             JTextField pointsField = new JTextField(points);
             JTextField wasteTypeField = new JTextField(wasteType);
 
@@ -229,8 +248,7 @@ public class DashboardFrame extends JPanel {
             int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Update Request", JOptionPane.OK_CANCEL_OPTION);
             if (option == JOptionPane.OK_OPTION) {
                 if (userIdComboBox.getSelectedItem() == null || courierIdComboBox.getSelectedItem() == null ||
-                        statusComboBox.getSelectedItem() == null ||
-                        pointsField.getText().trim().isEmpty() ||
+                        statusComboBox.getSelectedItem() == null || pointsField.getText().trim().isEmpty() ||
                         wasteTypeField.getText().trim().isEmpty()) {
                     JOptionPane.showMessageDialog(mainPanel, "All fields must be filled", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
@@ -291,7 +309,7 @@ public class DashboardFrame extends JPanel {
     }
 
     //show print preview
-    private void showPrintPreview() {
+    private void printPreview() {
         try {
             List<PickupRequest> requests = controller.getAllRequests();
             StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
