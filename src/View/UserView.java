@@ -7,22 +7,19 @@ import Helpers.UserUtil;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
 
-public class UserFrame extends JPanel{
-    private JFrame frame;
+public class UserView extends JPanel{
     private UserController controller;
     private DefaultTableModel tableModel;
     private JTable table;
-    private JPanel mainPanel;  // Menambahkan panel utama untuk card layout
+    private JPanel mainPanel;
 
-    public UserFrame() {
-        this.mainPanel = mainPanel; // Diterima dari MainFrame untuk menjaga panel tetap di satu frame
+    public UserView() {
         controller = new UserController();
         initializeUI();
-        loadUserData(); // Load data awal
+        loadUserData();
     }
 
     private void initializeUI() {
@@ -41,12 +38,10 @@ public class UserFrame extends JPanel{
         JButton btnCreate = new JButton("Daftar Masyarakat");
         JButton btnUpdate = new JButton("Ubah Data Masyarakat");
         JButton btnDelete = new JButton("Hapus Data Masyarakat");
-        JButton btnBack = new JButton("Kembali");
 
         crudPanel.add(btnCreate);
         crudPanel.add(btnUpdate);
         crudPanel.add(btnDelete);
-        crudPanel.add(btnBack);
 
         add(crudPanel, BorderLayout.SOUTH);
 
@@ -54,8 +49,6 @@ public class UserFrame extends JPanel{
         btnCreate.addActionListener(e -> createUser());
         btnUpdate.addActionListener(e -> updateUser());
         btnDelete.addActionListener(e -> deleteUser());
-        btnBack.addActionListener(e -> navigateBack());
-
     }
 
     private void loadUserData() {
@@ -95,13 +88,27 @@ public class UserFrame extends JPanel{
         int option = JOptionPane.showConfirmDialog(this, fields, "Pendaftaran Masyarakat", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try {
-                User user = new User(
-                        userIdField,
-                        nameField.getText().trim(),
-                        emailField.getText().trim(),
-                        phoneNumberField.getText().trim(),
-                        addressField.getText().trim()
-                );
+                // Validasi input
+                String name = nameField.getText().trim();
+                String email = emailField.getText().trim();
+                String phoneNumber = phoneNumberField.getText().trim();
+                String address = addressField.getText().trim();
+
+                if (name.isEmpty() || email.isEmpty() || phoneNumber.isEmpty() || address.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                    JOptionPane.showMessageDialog(this, "Email tidak valid!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!phoneNumber.matches("^\\d{10,15}$")) {
+                    JOptionPane.showMessageDialog(this, "Nomor handphone harus terdiri dari 10-15 digit angka!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                User user = new User(userIdField, name, email, phoneNumber, address);
                 controller.addUser(user);
                 JOptionPane.showMessageDialog(this, "Berhasil!");
                 loadUserData();
@@ -139,13 +146,26 @@ public class UserFrame extends JPanel{
         int option = JOptionPane.showConfirmDialog(this, fields, "Ubah Data Masyarakat", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try {
-                User user = new User(
-                        userId,
-                        nameField.getText().trim(),
-                        emailField.getText().trim(),
-                        phoneNumberField.getText().trim(),
-                        addressField.getText().trim()
-                );
+                // Validasi input
+                String newName = nameField.getText().trim();
+                String newEmail = emailField.getText().trim();
+                String newPhoneNumber = phoneNumberField.getText().trim();
+                String newAddress = addressField.getText().trim();
+
+                if (newName.isEmpty() || newEmail.isEmpty() || newPhoneNumber.isEmpty() || newAddress.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                    JOptionPane.showMessageDialog(this, "Email tidak valid!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!phoneNumber.matches("^\\d{10,15}$")) {
+                    JOptionPane.showMessageDialog(this, "Nomor handphone harus terdiri dari 10-15 digit angka!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                User user = new User(userId, newName, newEmail, newPhoneNumber, newAddress);
                 controller.updateUser(user);
                 JOptionPane.showMessageDialog(this, "Berhasil!");
                 loadUserData();
@@ -154,6 +174,7 @@ public class UserFrame extends JPanel{
             }
         }
     }
+
 
     private void deleteUser() {
         int selectedRow = table.getSelectedRow();
@@ -173,31 +194,5 @@ public class UserFrame extends JPanel{
                 JOptionPane.showMessageDialog(this, "Gagal: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-    private void navigateBack() {
-        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
-        cardLayout.show(mainPanel, "Dashboard");  // Kembali ke dashboard tanpa membuka frame baru
-    }
-
-    // Update menu action untuk membuka panel yang sesuai
-    private void openDashboard(ActionEvent e) {
-        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
-        cardLayout.show(mainPanel, "Dashboard"); // Pindah ke dashboard
-    }
-
-    private void openRequest(ActionEvent e) {
-        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
-        cardLayout.show(mainPanel, "Request");  // Pindah ke request
-    }
-
-    private void openManageUsers(ActionEvent e) {
-        // Tetap di halaman yang sama, hanya perbarui data jika perlu
-        loadUserData();
-    }
-
-    private void openCourier(ActionEvent e) {
-        CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
-        cardLayout.show(mainPanel, "Courier");  // Pindah ke halaman kurir
     }
 }

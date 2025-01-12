@@ -38,12 +38,12 @@ public class MainFrame {
 
         // Create panels for different views (no need to recreate frames)
         JPanel dashboardPanel = new DashboardFrame();
-        JPanel requestPanel = new RequestFrame();
-        JPanel manageUsersPanel = new UserFrame(); // Make sure UserFrame is added directly
+        JPanel requestPanel = new RequestView();
+        JPanel manageUsersPanel = new UserView(); // Make sure UserFrame is added directly
         JPanel courierPanel = new CourierView(); // Make sure CourierView is added directly
         JPanel requestUser = new RequestUserView();
         JPanel requestCourier = new RequestCourierView();
-        JPanel historyPanel = new HistoryFrame();
+        JPanel historyPanel = new HistoryView();
 
         // Add all panels to the mainPanel
         mainPanel.add(dashboardPanel, "Dashboard");

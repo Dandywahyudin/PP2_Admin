@@ -1,6 +1,7 @@
 package View;
 
 import Controller.PickupRequestController;
+import Helpers.RequestUtil;
 import Model.PickupRequest;
 
 import javax.swing.*;
@@ -19,7 +20,6 @@ public class DashboardFrame extends JPanel {
     private JComboBox<String> statusComboBox;
 
     public DashboardFrame() {
-        this.mainPanel = mainPanel;
         this.controller = new PickupRequestController();
         initializeUI();
         loadData();
@@ -56,7 +56,7 @@ public class DashboardFrame extends JPanel {
         tableModel = new DefaultTableModel(
                 new String[]{
                         "ID Permintaan",
-                        "ID Pengguna",
+                        "ID Masyarakat",
                         "ID Kurir",
                         "Status",
                         "Poin",
@@ -96,9 +96,9 @@ public class DashboardFrame extends JPanel {
         
         // Sub panel untuk tombol CRUD
         JPanel crudPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton btnCreate = new JButton("Create");
-        JButton btnUpdate = new JButton("Update");
-        JButton btnDelete = new JButton("Delete");
+        JButton btnCreate = new JButton("Tambah Data");
+        JButton btnUpdate = new JButton("Ubah Data");
+        JButton btnDelete = new JButton("Hapus Data");
         crudPanel.add(btnCreate);
         crudPanel.add(btnUpdate);
         crudPanel.add(btnDelete);
@@ -156,29 +156,29 @@ public class DashboardFrame extends JPanel {
 
             JComboBox<String> userIdComboBox = new JComboBox<>(userIds.toArray(new String[0]));
             JComboBox<String> courierIdComboBox = new JComboBox<>(courierIds.toArray(new String[0]));
-            JTextField requestIdField = new JTextField();
             JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"Pending", "Ongoing", "Completed"});
             JTextField pointsField = new JTextField();
             JTextField wasteTypeField = new JTextField();
 
+            String requestIdField = RequestUtil.generateRequestId();
+
             Object[] fields = {
                     "Request ID:", requestIdField,
-                    "User ID:", userIdComboBox,
-                    "Courier ID:", courierIdComboBox,
+                    "ID Masyarakat:", userIdComboBox,
+                    "ID Kurir:", courierIdComboBox,
                     "Status:", statusComboBox,
                     "Points:", pointsField,
-                    "Waste Type:", wasteTypeField
+                    "Jenis Sampah:", wasteTypeField
             };
 
             int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Create New Request", JOptionPane.OK_CANCEL_OPTION);
             if (option == JOptionPane.OK_OPTION) {
-                String requestId = requestIdField.getText().trim();
                 String userId = (String) userIdComboBox.getSelectedItem();
                 String courierId = (String) courierIdComboBox.getSelectedItem();
                 String status = (String) statusComboBox.getSelectedItem();
                 String wasteType = wasteTypeField.getText().trim();
 
-                if (requestId.isEmpty() || userId == null || courierId == null || status.isEmpty() || wasteType.isEmpty()) {
+                if (userId == null || courierId == null || status.isEmpty() || wasteType.isEmpty()) {
                     JOptionPane.showMessageDialog(mainPanel, "All fields must be filled!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
@@ -191,11 +191,12 @@ public class DashboardFrame extends JPanel {
                     return;
                 }
 
-                PickupRequest request = new PickupRequest(requestId, userId, courierId, status, points, wasteType);
+                PickupRequest request = new PickupRequest(requestIdField, userId, courierId, status, points, wasteType);
                 controller.addRequest(request);
 
                 JOptionPane.showMessageDialog(mainPanel, "Request added successfully!");
                 loadTableData();
+                loadData();
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(mainPanel, "Failed to load data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -238,14 +239,14 @@ public class DashboardFrame extends JPanel {
 
             // Menampilkan form untuk update
             Object[] fields = {
-                    "User ID:", userIdComboBox,
-                    "Courier ID:", courierIdComboBox,
+                    "ID Masyarakat:", userIdComboBox,
+                    "Id Kurir:", courierIdComboBox,
                     "Status:", statusComboBox,
                     "Points:", pointsField,
                     "Waste Type:", wasteTypeField
             };
 
-            int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Update Request", JOptionPane.OK_CANCEL_OPTION);
+            int option = JOptionPane.showConfirmDialog(mainPanel, fields, "Ubah Data", JOptionPane.OK_CANCEL_OPTION);
             if (option == JOptionPane.OK_OPTION) {
                 if (userIdComboBox.getSelectedItem() == null || courierIdComboBox.getSelectedItem() == null ||
                         statusComboBox.getSelectedItem() == null || pointsField.getText().trim().isEmpty() ||
@@ -315,9 +316,9 @@ public class DashboardFrame extends JPanel {
             StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
 
             for (PickupRequest request : requests) {
-                reportContent.append("Request ID: ").append(request.getRequestId()).append("\n");
-                reportContent.append("User ID: ").append(request.getUserId()).append("\n");
-                reportContent.append("Courier ID: ").append(request.getCourierId()).append("\n");
+                reportContent.append("ID Permintaan: ").append(request.getRequestId()).append("\n");
+                reportContent.append("ID Masyarakat: ").append(request.getUserId()).append("\n");
+                reportContent.append("ID Kurir: ").append(request.getCourierId()).append("\n");
                 reportContent.append("Status: ").append(request.getStatus()).append("\n");
                 reportContent.append("Points: ").append(request.getPoints()).append("\n");
                 reportContent.append("----------------------------\n");
@@ -341,9 +342,9 @@ public class DashboardFrame extends JPanel {
             StringBuilder reportContent = new StringBuilder("Pickup Requests Report:\n\n");
 
             for (PickupRequest request : requests) {
-                reportContent.append("Request ID: ").append(request.getRequestId()).append("\n");
-                reportContent.append("User ID: ").append(request.getUserId()).append("\n");
-                reportContent.append("Courier ID: ").append(request.getCourierId()).append("\n");
+                reportContent.append("ID Permintaan: ").append(request.getRequestId()).append("\n");
+                reportContent.append("ID Masyarakat: ").append(request.getUserId()).append("\n");
+                reportContent.append("ID Kurir: ").append(request.getCourierId()).append("\n");
                 reportContent.append("Status: ").append(request.getStatus()).append("\n");
                 reportContent.append("Points: ").append(request.getPoints()).append("\n");
                 reportContent.append("----------------------------\n");
@@ -374,9 +375,9 @@ public class DashboardFrame extends JPanel {
 
                 List<PickupRequest> requests = controller.getAllRequests();
                 for (PickupRequest request : requests) {
-                    document.add(new com.itextpdf.text.Paragraph("Request ID: " + request.getRequestId()));
-                    document.add(new com.itextpdf.text.Paragraph("User ID: " + request.getUserId()));
-                    document.add(new com.itextpdf.text.Paragraph("Courier ID: " + request.getCourierId()));
+                    document.add(new com.itextpdf.text.Paragraph("ID Permintaan: " + request.getRequestId()));
+                    document.add(new com.itextpdf.text.Paragraph("ID Masyarakat: " + request.getUserId()));
+                    document.add(new com.itextpdf.text.Paragraph("ID Kurir: " + request.getCourierId()));
                     document.add(new com.itextpdf.text.Paragraph("Status: " + request.getStatus()));
                     document.add(new com.itextpdf.text.Paragraph("Points: " + request.getPoints()));
                     document.add(new com.itextpdf.text.Paragraph("----------------------------"));

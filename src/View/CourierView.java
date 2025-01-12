@@ -17,7 +17,6 @@ public class CourierView extends JPanel {
     private JPanel mainPanel;
 
     public CourierView() {
-        this.mainPanel = mainPanel;
         controller = new CourierController();
         initializeUI();
         loadCourierData(); // Load data awal
@@ -30,7 +29,7 @@ public class CourierView extends JPanel {
         lblTitle.setFont(new Font("Arial", Font.BOLD, 24));
         add(lblTitle, BorderLayout.NORTH);
 
-        tableModel = new DefaultTableModel(new String[]{"Courier ID", "Nama", "Email", "Nomor Handphone", "Nomor Polisi", "Nomor SIM"}, 0);
+        tableModel = new DefaultTableModel(new String[]{"ID Kurir", "Nama", "Email", "Nomor Handphone", "Nomor Polisi", "Nomor SIM"}, 0);
         table = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
@@ -92,14 +91,33 @@ public class CourierView extends JPanel {
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Daftar Kurir Baru", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
-            String courierId = CourierUtil.generateCourierId();
-            String name = txtName.getText();
-            String email = txtEmail.getText();
-            String phoneNumber = txtPhoneNumber.getText();
-            String vehicleNumber = txtVehicleNumber.getText();
-            String simNumber = txtSimNumber.getText();
+            String name = txtName.getText().trim();
+            String email = txtEmail.getText().trim();
+            String phoneNumber = txtPhoneNumber.getText().trim();
+            String vehicleNumber = txtVehicleNumber.getText().trim();
+            String simNumber = txtSimNumber.getText().trim();
 
+            // Validasi input
+            if (name.isEmpty() || email.isEmpty() || phoneNumber.isEmpty() || vehicleNumber.isEmpty() || simNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                JOptionPane.showMessageDialog(this, "Email tidak valid!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!phoneNumber.matches("^\\d{10,15}$")) {
+                JOptionPane.showMessageDialog(this, "Nomor handphone harus terdiri dari 10-15 digit angka!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!simNumber.matches("^\\d{12,15}$")) {
+                JOptionPane.showMessageDialog(this, "Nomor SIM harus terdiri dari 12 digit angka!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String courierId = CourierUtil.generateCourierId();
             Courier courier = new Courier(courierId, name, email, phoneNumber, vehicleNumber, simNumber);
+
             try {
                 controller.addCourier(courier);
                 JOptionPane.showMessageDialog(this, "Kurir berhasil didaftarkan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
@@ -118,7 +136,6 @@ public class CourierView extends JPanel {
         }
 
         String courierId = (String) tableModel.getValueAt(selectedRow, 0);
-
         JTextField txtName = new JTextField((String) tableModel.getValueAt(selectedRow, 1), 15);
         JTextField txtEmail = new JTextField((String) tableModel.getValueAt(selectedRow, 2), 15);
         JTextField txtPhoneNumber = new JTextField((String) tableModel.getValueAt(selectedRow, 3), 15);
@@ -139,9 +156,28 @@ public class CourierView extends JPanel {
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Ubah Data Kurir", JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
+            String name = txtName.getText().trim();
+            String email = txtEmail.getText().trim();
+            String phoneNumber = txtPhoneNumber.getText().trim();
+            String vehicleNumber = txtVehicleNumber.getText().trim();
+            String simNumber = txtSimNumber.getText().trim();
+
+            // Validasi input
+            if (name.isEmpty() || email.isEmpty() || phoneNumber.isEmpty() || vehicleNumber.isEmpty() || simNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Semua field harus diisi!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                JOptionPane.showMessageDialog(this, "Email tidak valid!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (!phoneNumber.matches("^\\d{10,15}$")) {
+                JOptionPane.showMessageDialog(this, "Nomor handphone harus terdiri dari 10-15 digit angka!", "Validasi Gagal", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             try {
-                Courier courier = new Courier(courierId, txtName.getText(), txtEmail.getText(),
-                        txtPhoneNumber.getText(), txtVehicleNumber.getText(), txtSimNumber.getText());
+                Courier courier = new Courier(courierId, name, email, phoneNumber, vehicleNumber, simNumber);
                 controller.updateCourier(courier);
                 JOptionPane.showMessageDialog(this, "Data kurir berhasil diubah!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
                 loadCourierData();

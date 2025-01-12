@@ -15,7 +15,6 @@ public class RequestUserView extends JPanel {
     private DefaultTableModel tableModel;
 
     public RequestUserView() {
-        this.mainPanel = mainPanel;
         this.controller = new PickupRequestController();
         initializeUI();
         loadData();
@@ -31,7 +30,7 @@ public class RequestUserView extends JPanel {
         tableModel = new DefaultTableModel(
                 new String[] {
                         "ID Permintaan",
-                        "ID Pengguna",
+                        "ID Masyarakat",
                         "Status",
                         "Poin",
                         "Jenis Sampah"

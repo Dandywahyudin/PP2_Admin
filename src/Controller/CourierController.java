@@ -8,14 +8,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CourierController {
-    // Method untuk menambah courier baru
-    public void addCourier(Courier courier) throws SQLException {
-        String sql = "INSERT INTO couriers (courier_id, name, email, phone_number, vehicle_number, sim_number) VALUES (?, ?, ?, ?, ?, ?)";
 
+    private void validateCourier(Courier courier) throws IllegalArgumentException {
+        if (courier.getName() == null || courier.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Nama tidak boleh kosong.");
+        }
+        if (courier.getEmail() == null || !courier.getEmail().matches("^[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
+            throw new IllegalArgumentException("Email tidak valid.");
+        }
+        if (courier.getPhoneNumber() == null || !courier.getPhoneNumber().matches("\\d{10,}")) {
+            throw new IllegalArgumentException("Nomor handphone tidak valid. Harus berupa angka dan minimal 10 digit.");
+        }
+        if (courier.getVehicleNumber() == null || courier.getVehicleNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("Nomor kendaraan tidak boleh kosong.");
+        }
+        if (courier.getSimNumber() == null || !courier.getSimNumber().matches("\\d{12}")) {
+            throw new IllegalArgumentException("Nomor SIM tidak valid. Harus berupa angka 12 digit.");
+        }
+    }
+
+    // Method untuk menambahkan courier dengan validasi
+    public void addCourier(Courier courier) throws SQLException {
+        // Validasi sebelum eksekusi
+        validateCourier(courier);
+
+        String sql = "INSERT INTO couriers (courier_id, name, email, phone_number, vehicle_number, sim_number) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, courier.getCourierId());  // ID sudah otomatis
+            stmt.setString(1, courier.getCourierId());
             stmt.setString(2, courier.getName());
             stmt.setString(3, courier.getEmail());
             stmt.setString(4, courier.getPhoneNumber());
@@ -49,10 +70,12 @@ public class CourierController {
         return couriers;
     }
 
-    // Method untuk mengubah data courier
+    // Method untuk mengubah data courier dengan validasi
     public void updateCourier(Courier courier) throws SQLException {
-        String sql = "UPDATE couriers SET name = ?, email = ?, phone_number = ?, vehicle_number = ?, sim_number = ? WHERE courier_id = ?";
+        // Validasi sebelum eksekusi
+        validateCourier(courier);
 
+        String sql = "UPDATE couriers SET name = ?, email = ?, phone_number = ?, vehicle_number = ?, sim_number = ? WHERE courier_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -69,8 +92,11 @@ public class CourierController {
 
     // Method untuk menghapus data courier
     public void deleteCourier(String courierId) throws SQLException {
-        String sql = "DELETE FROM couriers WHERE courier_id = ?";
+        if (courierId == null || courierId.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID Courier tidak boleh kosong.");
+        }
 
+        String sql = "DELETE FROM couriers WHERE courier_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 

@@ -6,6 +6,6 @@ import java.util.Date;
 public class RequestUtil {
     public static String generateRequestId() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        return "O-" + sdf.format(new Date());
+        return "R-" + sdf.format(new Date());
     }
 }

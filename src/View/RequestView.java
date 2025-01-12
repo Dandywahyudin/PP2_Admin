@@ -9,12 +9,12 @@ import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-public class RequestFrame extends JPanel {
+public class RequestView extends JPanel {
     private JPanel mainPanel;
     private PickupRequestController controller;
     private DefaultTableModel tableModel;
 
-    public RequestFrame() {
+    public RequestView() {
         this.mainPanel = mainPanel;  // Menyimpan panel utama dari MainFrame
         this.controller = new PickupRequestController();
         initializeUI();
@@ -31,7 +31,7 @@ public class RequestFrame extends JPanel {
         tableModel = new DefaultTableModel(
                 new String[]{
                         "ID Permintaan",
-                        "ID Pengguna",
+                        "ID Masyarakat",
                         "ID Kurir",
                         "Status",
                         "Poin",
@@ -117,7 +117,7 @@ public class RequestFrame extends JPanel {
 
         Object[] fields = {
                 "Request ID:", requestIdField,
-                "User ID:", userIdComboBox,
+                "Masyarakat ID:", userIdComboBox,
                 "Courier ID:", courierIdComboBox,
                 "Waste Type:", wasteTypeField
         };
@@ -136,7 +136,7 @@ public class RequestFrame extends JPanel {
                 }
 
                 List<PickupRequest> results = controller.trackRequest(requestId, userId, courierId, wasteType);
-                tableModel.setRowCount(0);  // Clear the table
+                tableModel.setRowCount(0);
                 for (PickupRequest request : results) {
                     tableModel.addRow(new Object[]{
                             request.getRequestId(),

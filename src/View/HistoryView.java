@@ -9,11 +9,11 @@ import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-public class HistoryFrame extends JPanel {
+public class HistoryView extends JPanel {
     private PickupRequestController controller;
     private DefaultTableModel tableModel;
 
-    public HistoryFrame() {
+    public HistoryView() {
         this.controller = new PickupRequestController();
         initializeUI();
         loadData();
@@ -22,14 +22,14 @@ public class HistoryFrame extends JPanel {
     private void initializeUI() {
         setLayout(new BorderLayout());
 
-        JLabel lblHistory = new JLabel("Completed Requests", SwingConstants.CENTER);
+        JLabel lblHistory = new JLabel("Riwayat Penjemputan", SwingConstants.CENTER);
         lblHistory.setFont(new Font("Arial", Font.BOLD, 24));
         add(lblHistory, BorderLayout.NORTH);
 
         tableModel = new DefaultTableModel(
                 new String[]{
                         "ID Permintaan",
-                        "ID Pengguna",
+                        "ID Masyarakat",
                         "ID Kurir",
                         "Status",
                         "Poin",
@@ -45,7 +45,7 @@ public class HistoryFrame extends JPanel {
     private void loadData() {
         try {
             List<PickupRequest> requests = controller.getRequestsByStatus("Completed");
-            tableModel.setRowCount(0);  // Menghapus data lama
+            tableModel.setRowCount(0);
             for (PickupRequest request : requests) {
                 tableModel.addRow(new Object[]{
                         request.getRequestId(),
